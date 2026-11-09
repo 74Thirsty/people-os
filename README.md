@@ -10,40 +10,39 @@ PeopleOS is a phone-first, agent-driven workforce operating system. Employees in
 4. Agents interpret and coordinate; deterministic services enforce permissions and execute consequential operations.
 5. Payroll, tax, time, and accounting records are authoritative backend records—not LLM memory.
 6. No agent can bypass tenant isolation, authorization, approval, or audit controls.
-7. No live payroll or disbursement until jurisdiction, provider, tax, identity, and approval configuration is verified.\n8. HRS is a proprietary internal hour-accounting unit; it is not currency or a transferable crypto-token.\n9. Scheduled HRS, verified worked time, earned wages, and cash payouts are separate ledgers and states.\n10. Employee cash-outs may use only deterministically calculated eligible earned wages and an approved payout provider.
+7. No live payroll or disbursement until jurisdiction, provider, tax, identity, and approval configuration is verified.
+8. HRS is a proprietary PeopleOS-controlled custodial token; employees cannot access or transfer it.
+9. HRS time accounting, earned compensation, and HRS valuation are independent systems.
+10. No employee payout may be calculated from HRS token quantity or valuation.
 
 ## Stack
-Next.js App Router, React, TypeScript, Supabase PostgreSQL/Auth, Zod, Vitest, GitHub Actions. Planned integrations: telephony/SMS, Microsoft Graph, payroll provider.
+Next.js App Router, React, TypeScript, Supabase PostgreSQL/Auth, Zod, Vitest, GitHub Actions. Planned integrations: telephony/SMS, Microsoft Graph, payroll provider, and qualified custody infrastructure.
 
 ## Layout
-- `src/app`: employer command center
-- `src/lib`: shared schemas and services
-- `tenants/template`: business configuration, agent instructions, workflows
-- `supabase/migrations`: database schema and row-level security\n- `docs/hrs-and-earned-wage-access.md`: HRS and on-demand earned-wage access architecture
-- `.github/workflows`: CI
+- src/app: employer command center
+- src/lib: shared schemas and services
+- tenants/template: business configuration, agent instructions, workflows
+- supabase/migrations: database schema and row-level security
+- docs/hrs-and-earned-wage-access.md: HRS and on-demand earned-wage access architecture
+- docs/hrs-custodial-token-economics.md: custodial HRS and valuation architecture
+- .github/workflows: CI
 
 ## Local development
 Requires Node.js 22 and npm.
 
-```bash
-cp .env.example .env.local
-npm install
-npm run dev
-```
-
-The initial dashboard intentionally displays unconfigured states; it does not fabricate employee, attendance, or payroll data.
+    cp .env.example .env.local
+    npm install
+    npm run dev
 
 ## Validation
-```bash
-npm run typecheck
-npm run lint
-npm test
-npm run build
-```
+    npm run typecheck
+    npm run lint
+    npm test
+    npm run build
 
 ## Release status
-This is an initial engineering foundation, not a payroll-ready or compliance-certified product. The initial database migration provides read-only tenant-member policies. Write paths must be introduced with server-side authorization, approval controls, idempotency, and audit logging.
+This is an engineering foundation, not a payroll-ready or custody-certified product. HRS wallet/ledger records are not yet connected to a KMS/HSM, custody provider, blockchain, or server-side posting service. No live HRS issuance, employee payout, or external token operation is enabled. HRS tables must remain inaccessible to browser and employee clients.
 
-Before production use, implement and test tenant provisioning, identity verification, server-side RBAC, signed telephony webhooks and replay protection, consent/retention, Microsoft Graph OAuth with least privilege, versioned agent loading/review/rollback, durable workflows, time/leave/payroll/tax services, HRS posting invariants, earned-wage eligibility, provider payout/reconciliation, security testing, backup/restore, observability, and jurisdiction-specific legal/payroll review. HRS tables currently have read-only member policies; no production posting or payout path exists.
+Before production use, implement and test tenant provisioning, identity verification, server-side RBAC, signed telephony webhooks and replay protection, consent/retention, Microsoft Graph OAuth with least privilege, versioned agent loading/review/rollback, durable workflows, deterministic time/payroll/tax services, custodial key management, atomic HRS posting, earned-wage eligibility, provider payout/reconciliation, security testing, backup/restore, observability, and jurisdiction-specific legal review.
 
-Never put service-role keys, provider secrets, tax identifiers, bank details, or sensitive employee data in agent files or source control.
+Never put service-role keys, provider secrets, tax identifiers, bank details, private keys, seed phrases, or sensitive employee data in agent files or source control.
