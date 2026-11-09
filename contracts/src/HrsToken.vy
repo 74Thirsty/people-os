@@ -134,7 +134,6 @@ def burn_from(holder: address, amount: uint256) -> bool:
     assert self.burners[msg.sender], "burner only"
     assert not self.paused, "paused"
     assert holder != empty(address), "zero holder"
-    assert self.custodians[holder], "holder not custodian"
     assert amount > 0, "zero amount"
     assert self.balanceOf[holder] >= amount, "insufficient balance"
     self.balanceOf[holder] -= amount
