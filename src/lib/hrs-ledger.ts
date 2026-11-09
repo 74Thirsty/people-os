@@ -44,9 +44,10 @@ function assertMinutes(value: number, field: string): void {
 }
 
 /** Mint scheduled capacity. This reserves time only; it does not create earned wages. */
-export function mintScheduledHrs(minutes: number): HrsAllocation {
+export function mintScheduledHrs(allocationId: string, minutes: number): HrsAllocation {
   assertMinutes(minutes, "minutes");
-  return { allocationId: "", scheduledMinutes: minutes, consumedMinutes: 0, releasedMinutes: 0 };
+  if (!allocationId.trim()) throw new Error("allocationId is required");
+  return { allocationId, scheduledMinutes: minutes, consumedMinutes: 0, releasedMinutes: 0 };
 }
 
 /** Consume only verified, positive work time and never exceed an allocation. */
