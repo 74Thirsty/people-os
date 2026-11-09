@@ -16,16 +16,19 @@ PeopleOS is a phone-first, agent-driven workforce operating system. Employees in
 10. No employee payout may be calculated from HRS token quantity or valuation.
 
 ## Stack
-Next.js App Router, React, TypeScript, Supabase PostgreSQL/Auth/Storage, Zod, Vitest, GitHub Actions. Planned integrations: telephony/SMS, Microsoft Graph, payroll provider, and qualified custody infrastructure.
+Next.js App Router, React, TypeScript, Supabase PostgreSQL/Auth/Storage, Zod, Vitest, Vyper, Titanoboa, and GitHub Actions. Planned integrations: telephony/SMS, Microsoft Graph, payroll provider, and qualified custody infrastructure.
 
 ## Layout
 - `src/app`: employer command center, authentication, tenant onboarding, and API routes
 - `src/lib`: shared schemas, Supabase clients, and deterministic services
 - `tenants/template`: business configuration, agent instructions, workflows
 - `supabase/migrations`: database schema, row-level security, HRS RPCs, tenant onboarding, and storage policies
+- `contracts/src`: Vyper on-chain contracts
+- `contracts/tests`: local EVM contract tests
+- `contracts/README.md`: contract custody model and deployment gates
 - `docs/supabase-application-setup.md`: Supabase setup and migration guide
 - `docs/hrs-custodial-token-economics.md`: custodial HRS and valuation architecture
-- `.github/workflows`: CI
+- `.github/workflows`: application, database, and contract CI
 
 ## Local development
 Requires Node.js 22 and npm.
@@ -44,6 +47,15 @@ Server-only HRS integration variable:
 ## Supabase setup
 Review [the Supabase application setup guide](docs/supabase-application-setup.md). The migration sequence is 001 through 005. Configure Auth Site URL and the `/auth/callback` redirect allow-list before using email magic links.
 
+## Contract development and tests
+Requires Python 3.12.
+
+    python -m pip install -r contracts/requirements.txt
+    vyper contracts/src/HrsToken.vy
+    python -m pytest contracts/tests -q
+
+The Vyper contract workflow runs compilation and local EVM tests on pull requests and pushes to `main`.
+
 ## Validation
     npm run typecheck
     npm run lint
@@ -54,8 +66,8 @@ Review [the Supabase application setup guide](docs/supabase-application-setup.md
 To intentionally refresh the committed dependency lockfile after changing `package.json`, run `npm run lockfile:refresh` and commit both files.
 
 ## Release status
-The application now has Supabase SSR/browser/admin client boundaries, email magic-link authentication, authenticated tenant onboarding, a tenant-isolated employer dashboard, a private document bucket with tenant-folder policies, and HRS database posting primitives. The application migration has not yet been applied to a real Supabase project because no project reference or credentials were supplied in this build session. The CI pipeline uses the committed npm lockfile, rejects moderate-or-higher npm advisories, and applies all five migrations to a clean local Supabase/PostgreSQL instance before running database schema lint.
+The application has Supabase SSR/browser/admin client boundaries, email magic-link authentication, authenticated tenant onboarding, a tenant-isolated employer dashboard, a private document bucket with tenant-folder policies, and HRS database posting primitives. The application migration has not yet been applied to a real Supabase project because no project reference or credentials were supplied in the build session.
 
-HRS wallet provisioning and ledger posting remain server-only. The dashboard does not call HRS posting RPCs. Before enabling schedule minting or clock consumption, wire real schedule authorization, employee identity verification, signed source-event validation, replay protection, tenant RBAC, and KMS/HSM-backed key-reference resolution. No live chain issuance, external market, employee payout, or payroll disbursement is enabled.
+A first Vyper ERC-20 HRS token contract and local EVM tests are now in the repository. The contract is not deployed or independently audited. The PostgreSQL HRS ledger is not yet connected to the chain. No live chain issuance, external market, swap, employee payout, or payroll disbursement is enabled. See `contracts/README.md` for the remaining controls and deployment gates.
 
 Never put service-role keys, provider secrets, tax identifiers, bank details, private keys, seed phrases, or sensitive employee data in agent files or source control.
