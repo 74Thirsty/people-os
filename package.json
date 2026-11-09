@@ -14,7 +14,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "lockfile:refresh": "npm install --package-lock-only && npm audit fix --package-lock-only"
+    "lockfile:refresh": "npm install --package-lock-only && npm audit fix --package-lock-only --audit-level=moderate"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
