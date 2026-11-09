@@ -16,12 +16,14 @@ import {
 export interface ApprovedHrsSchedule {
   tenantId: string;
   employeeId: string;
-  walletId: string;
-  allocationId: string;
   scheduledMinutes: number;
   scheduleVersion: string;
   approvedBy: string;
   approvedAt: string;
+}
+export interface ExistingApprovedHrsSchedule extends ApprovedHrsSchedule {
+  walletId: string;
+  allocationId: string;
 }
 export interface ApprovedHrsScheduleForProvisioning extends ApprovedHrsSchedule {
   periodStart: string;
@@ -67,7 +69,7 @@ export function createHrsWorkflowService(client: HrsRpcClient, verifiers: HrsWor
         signingKeyReference: schedule.signingKeyReference
       });
     },
-    async mintApprovedSchedule(schedule: ApprovedHrsSchedule): Promise<string> {
+    async mintApprovedSchedule(schedule: ExistingApprovedHrsSchedule): Promise<string> {
       await verifiers.authorizeSchedule(schedule);
       assertPositiveMinutes(schedule.scheduledMinutes, "scheduledMinutes");
       const input: HrsPostingInput = {
