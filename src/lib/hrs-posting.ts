@@ -25,6 +25,23 @@ export interface HrsPostingInput {
   actorUserId?: string | null;
   metadata?: Record<string, unknown>;
 }
+export interface HrsApprovedScheduleInput {
+  tenantId: string;
+  employeeId: string;
+  periodStart: string;
+  periodEnd: string;
+  scheduledMinutes: number;
+  scheduleVersion: string;
+  approvedBy: string;
+  approvedAt: string;
+  sourceReference: string;
+  signingKeyReference: string;
+}
+export interface HrsScheduleMintResult {
+  walletId: string;
+  allocationId: string;
+  ledgerEntryId: string;
+}
 export interface HrsWalletProvisionInput {
   tenantId: string;
   employeeId: string;
@@ -71,8 +88,49 @@ async function post(
     p_metadata: input.metadata ?? {}
   });
 }
+async function createAndMintSchedule(
+  client: HrsRpcClient,
+  input: HrsApprovedScheduleInput
+): Promise<HrsScheduleMintResult> {
+  required(input.tenantId, "tenantId");
+  required(input.employeeId, "employeeId");
+  required(input.periodStart, "periodStart");
+  required(input.periodEnd, "periodEnd");
+  required(input.scheduleVersion, "scheduleVersion");
+  required(input.approvedBy, "approvedBy");
+  required(input.sourceReference, "sourceReference");
+  required(input.signingKeyReference, "signingKeyReference");
+  if (!Number.isSafeInteger(input.scheduledMinutes) || input.scheduledMinutes <= 0) {
+    throw new Error("scheduledMinutes must be a positive safe integer");
+  }
+  if (input.periodEnd < input.periodStart) throw new Error("periodEnd cannot precede periodStart");
+  if (!Number.isFinite(Date.parse(input.approvedAt))) throw new Error("approvedAt must be a valid timestamp");
+  const { data, error } = await client.rpc("create_and_mint_hrs_schedule", {
+    p_tenant_id: input.tenantId,
+    p_employee_id: input.employeeId,
+    p_period_start: input.periodStart,
+    p_period_end: input.periodEnd,
+    p_scheduled_minutes: input.scheduledMinutes,
+    p_schedule_version: input.scheduleVersion,
+    p_approved_by: input.approvedBy,
+    p_approved_at: input.approvedAt,
+    p_source_reference: input.sourceReference,
+    p_signing_key_reference: input.signingKeyReference
+  });
+  if (error) throw new Error("HRS schedule mint failed: " + error.message);
+  if (!Array.isArray(data) || data.length !== 1) {
+    throw new Error("HRS schedule mint RPC returned an invalid result");
+  }
+  const row = data[0] as Record<string, unknown>;
+  if (typeof row.wallet_id !== "string" || typeof row.allocation_id !== "string" ||
+      typeof row.ledger_entry_id !== "string") {
+    throw new Error("HRS schedule mint RPC returned incomplete identifiers");
+  }
+  return { walletId: row.wallet_id, allocationId: row.allocation_id, ledgerEntryId: row.ledger_entry_id };
+}
 export function createHrsPostingService(client: HrsRpcClient) {
   return Object.freeze({
+    createAndMintApprovedSchedule: (input: HrsApprovedScheduleInput) => createAndMintSchedule(client, input),
     provisionWallet: (input: HrsWalletProvisionInput) => {
       required(input.tenantId, "tenantId");
       required(input.employeeId, "employeeId");
