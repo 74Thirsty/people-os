@@ -33,7 +33,7 @@ false in schema v1.
 Authenticated tenant members may read through RLS. Only tenant owners and
 administrators may update via `PUT /api/tenants/:tenantId/configuration`.
 Direct table writes are revoked. The update RPC checks the authenticated
-membership role, tenant ID, schema version, 1 MiB database size limit, HRS
+membership role, tenant ID, schema version, 10 MiB database size limit, HRS
 custody invariant, and expected revision. Revision mismatch returns HTTP 409.
 Successful updates append an audit event in the same database transaction.
 
