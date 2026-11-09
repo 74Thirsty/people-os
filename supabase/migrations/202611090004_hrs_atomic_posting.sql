@@ -82,7 +82,7 @@ declare
   v_minted bigint;
   v_consumed bigint;
   v_released bigint;
-  v_balance bigint;
+  v_corrected bigint;
   v_entry_id uuid;
   v_expected_mint bigint;
 begin
@@ -138,8 +138,9 @@ begin
   select
     coalesce(sum(units) filter (where entry_type = 'mint'), 0),
     coalesce(sum(units) filter (where entry_type = 'consume'), 0),
-    coalesce(sum(units) filter (where entry_type = 'release'), 0)
-  into v_minted, v_consumed, v_released
+    coalesce(sum(units) filter (where entry_type = 'release'), 0),
+    coalesce(sum(units) filter (where entry_type = 'correction'), 0)
+  into v_minted, v_consumed, v_released, v_corrected
   from public.hrs_token_ledger
   where tenant_id = p_tenant_id and wallet_id = p_wallet_id
     and allocation_id = p_allocation_id;
@@ -156,17 +157,21 @@ begin
     end if;
   elsif p_entry_type = 'consume' then
     if v_minted = 0 then raise exception 'Cannot consume HRS before schedule mint' using errcode = '55000'; end if;
-    if p_units > v_minted - v_consumed - v_released then
+    if p_units > v_minted + v_corrected - v_consumed - v_released then
       raise exception 'Verified work exceeds remaining HRS allocation; route as an overage exception'
         using errcode = '22003';
     end if;
   elsif p_entry_type = 'release' then
-    if v_minted = 0 or p_units > v_minted - v_consumed - v_released then
+    if v_minted = 0 or p_units > v_minted + v_corrected - v_consumed - v_released then
       raise exception 'Release exceeds unused minted HRS' using errcode = '22003';
     end if;
   elsif p_entry_type = 'correction' then
-    -- Corrections are positive compensating credits only. Negative adjustments
-    -- must be represented by an explicitly reviewed consume/reversal workflow.
+    -- Positive, manager-authorized correction credits only. Negative adjustments
+    -- require a separately reviewed correction-debit workflow.
+    if v_minted = 0 then raise exception 'Cannot correct an allocation before its initial mint' using errcode = '55000'; end if;
+    if p_actor_type not in ('manager','administrator') or p_actor_user_id is null then
+      raise exception 'Manager or administrator identity required for HRS correction' using errcode = '42501';
+    end if;
     if p_units > 1000000 then raise exception 'Correction exceeds safety limit' using errcode = '22003'; end if;
   end if;
 
