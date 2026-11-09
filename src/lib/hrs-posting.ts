@@ -1,11 +1,11 @@
 /**
- * Server-side adapter for the atomic HRS posting RPCs.
- *
- * Pass a Supabase service-role client from trusted server code only.
- * Never import this module into client components or expose service-role credentials.
- * Clock evidence must be authenticated and validated before calling consume().
+ * Server-side adapter for atomic HRS custody RPCs.
+ * Supply a Supabase service-role client from trusted server code only.
+ * Never import into client components or expose service-role credentials.
+ * The caller must authenticate schedule approvals, clock evidence, and manager RBAC.
  */
 export type HrsPostingType = "mint" | "consume" | "release" | "correction";
+export type HrsActorType = "manager" | "administrator" | "system" | "provider";
 export interface HrsRpcError { message: string; code?: string; }
 export interface HrsRpcClient {
   rpc(name: string, args: Record<string, unknown>): PromiseLike<{
@@ -21,9 +21,15 @@ export interface HrsPostingInput {
   idempotencyKey: string;
   sourceReference: string;
   occurredAt: string;
-  actorType?: "manager" | "administrator" | "agent" | "system" | "provider";
+  actorType?: HrsActorType;
   actorUserId?: string | null;
   metadata?: Record<string, unknown>;
+}
+export interface HrsWalletProvisionInput {
+  tenantId: string;
+  employeeId: string;
+  /** Opaque KMS/HSM key reference; never pass key material. */
+  signingKeyReference: string;
 }
 function required(value: string, field: string): void {
   if (!value.trim()) throw new Error(field + " is required");
@@ -39,13 +45,19 @@ function validate(input: HrsPostingInput): void {
   }
   if (!Number.isFinite(Date.parse(input.occurredAt))) throw new Error("occurredAt must be a valid timestamp");
 }
-async function call(
+async function rpcUuid(client: HrsRpcClient, name: string, args: Record<string, unknown>): Promise<string> {
+  const { data, error } = await client.rpc(name, args);
+  if (error) throw new Error("HRS RPC failed: " + error.message);
+  if (typeof data !== "string" || !data) throw new Error("HRS RPC returned no UUID");
+  return data;
+}
+async function post(
   client: HrsRpcClient,
   entryType: HrsPostingType,
   input: HrsPostingInput
 ): Promise<string> {
   validate(input);
-  const { data, error } = await client.rpc("post_hrs_allocation_event", {
+  return rpcUuid(client, "post_hrs_allocation_event", {
     p_tenant_id: input.tenantId,
     p_wallet_id: input.walletId,
     p_allocation_id: input.allocationId,
@@ -58,15 +70,22 @@ async function call(
     p_actor_user_id: input.actorUserId ?? null,
     p_metadata: input.metadata ?? {}
   });
-  if (error) throw new Error("HRS " + entryType + " failed: " + error.message);
-  if (typeof data !== "string" || !data) throw new Error("HRS posting RPC returned no ledger entry ID");
-  return data;
 }
 export function createHrsPostingService(client: HrsRpcClient) {
   return Object.freeze({
-    mintSchedule: (input: HrsPostingInput) => call(client, "mint", input),
-    consumeVerifiedWork: (input: HrsPostingInput) => call(client, "consume", input),
-    releaseUnusedSchedule: (input: HrsPostingInput) => call(client, "release", input),
-    postCorrectionCredit: (input: HrsPostingInput) => call(client, "correction", input)
+    provisionWallet: (input: HrsWalletProvisionInput) => {
+      required(input.tenantId, "tenantId");
+      required(input.employeeId, "employeeId");
+      required(input.signingKeyReference, "signingKeyReference");
+      return rpcUuid(client, "provision_hrs_wallet", {
+        p_tenant_id: input.tenantId,
+        p_employee_id: input.employeeId,
+        p_signing_key_reference: input.signingKeyReference
+      });
+    },
+    mintSchedule: (input: HrsPostingInput) => post(client, "mint", input),
+    consumeVerifiedWork: (input: HrsPostingInput) => post(client, "consume", input),
+    releaseUnusedSchedule: (input: HrsPostingInput) => post(client, "release", input),
+    postCorrectionCredit: (input: HrsPostingInput) => post(client, "correction", input)
   });
 }
