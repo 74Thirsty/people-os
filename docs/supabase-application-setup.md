@@ -20,7 +20,7 @@ The migration order is:
 4. `202611090004_hrs_atomic_posting.sql`
 5. `202611090005_supabase_application_setup.sql`
 
-For a new Supabase project, link the project with the Supabase CLI and apply migrations after reviewing the target project. Do not apply these foundation migrations to an existing populated database without a schema and data compatibility review.
+For a new Supabase project, link the project with the Supabase CLI and apply migrations after reviewing the target project. CI also starts an isolated local Supabase stack, applies all five migrations from a clean database, and runs database lint before changes are accepted. Do not apply these foundation migrations to an existing populated database without a schema and data compatibility review.
 
 ```sh
 supabase login
@@ -51,3 +51,10 @@ Members can read their tenant's objects; owner/administrator/manager roles can u
 ## HRS production gate
 
 The application integration does not activate HRS posting. Before any schedule mint or clock consumption is exposed, implement real schedule authorization, employee identity verification, signed source-event validation, replay protection, tenant role checks, and KMS/HSM-backed key-reference resolution. Do not use a placeholder signing-key reference or fake clock verifier. The HRS RPCs are not called by the dashboard or browser.
+
+## Dependency and CI controls
+
+- Commit `package-lock.json`; production and CI installs use `npm ci`.
+- CI fails on high and critical npm audit findings.
+- CI applies the complete migration chain to an isolated local Supabase/PostgreSQL instance and runs `supabase db lint`.
+- Dependency changes must update `package.json` and `package-lock.json` together. Use `npm run lockfile:refresh` to regenerate the lockfile.
