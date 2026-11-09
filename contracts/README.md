@@ -5,8 +5,8 @@
 - `src/HrsToken.vy`: Vyper 0.4.3 ERC-20 token with 18 decimals.
 - Admin-controlled, separately assignable mint and burn roles.
 - Pause/unpause control.
-- Standard ERC-20 transfers, approvals, and delegated transfers.
-- Privileged `burn_from` lets an authorized PeopleOS burner retire units from a company-custodied address without giving that address's key to the burner.
+- ERC-20-compatible transfer, approval, and delegated-transfer methods, restricted to an explicit PeopleOS custody/protocol allowlist.
+- Privileged `burn_from` lets an authorized PeopleOS burner retire units from any address, including a revoked/compromised custody address, without needing its key.
 - `tests/test_hrs_token.py`: local EVM tests using Titanoboa.
 - CI compiles the Vyper contract and runs the EVM tests.
 
@@ -14,7 +14,7 @@
 
 The token contract does not give employees keys or wallet access. PeopleOS must control every address that holds HRS. The admin, minter, and burner addresses must be controlled by a multisig or an appropriately secured custody system before any live deployment. Do not use a developer EOA or a hot application key as the permanent admin.
 
-The ERC-20 transfer interface is intentionally standard so PeopleOS-controlled wallets and approved smart-contract integrations can move HRS. It does not make employee access permissible: no employee address may be provisioned as a signer or receive a private key.
+The contract exposes ERC-20-compatible method signatures, but every holder, spender, and receiver must be explicitly allowlisted as a PeopleOS-controlled custody address or approved protocol contract. This prevents an employee or arbitrary outside address from receiving or spending HRS. Approved swap routers and pool contracts can only participate after an explicit custody allowlist change; no swap venue is currently configured. No employee address may be allowlisted as a signer or receive a private key.
 
 ## Important boundaries
 
