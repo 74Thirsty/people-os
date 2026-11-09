@@ -7,8 +7,6 @@ export default async function SetupPage() {
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  const { data: memberships } = await supabase.from("tenant_memberships").select("tenant_id").eq("user_id", user.id).limit(1);
-  if (memberships?.length) redirect("/");
   return <main className="auth-shell">
     <section className="auth-card">
       <Link className="brand" href="/"><span className="mark">P</span>PeopleOS</Link>
