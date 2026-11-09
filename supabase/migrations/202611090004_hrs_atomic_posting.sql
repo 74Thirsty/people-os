@@ -43,7 +43,8 @@ begin
     select id into v_wallet_id
     from public.hrs_wallets
     where tenant_id = p_tenant_id and employee_id = p_employee_id
-      and status = 'active' and employee_access = false and custodian = 'peopleos';
+      and status = 'active' and employee_access = false and custodian = 'peopleos'
+      and signing_key_reference = p_signing_key_reference;
     if v_wallet_id is null then
       raise exception 'Existing HRS wallet is not active or does not satisfy custody policy'
         using errcode = '55000';
@@ -128,7 +129,10 @@ begin
        and v_existing.entry_type = p_entry_type
        and v_existing.units = p_units
        and v_existing.source_reference = p_source_reference
-       and v_existing.occurred_at = p_occurred_at then
+       and v_existing.occurred_at = p_occurred_at
+       and v_existing.actor_type = p_actor_type
+       and v_existing.actor_user_id is not distinct from p_actor_user_id
+       and v_existing.metadata = coalesce(p_metadata, '{}'::jsonb) then
       return v_existing.id;
     end if;
     raise exception 'Idempotency key was already used for a different HRS event'
@@ -233,6 +237,7 @@ declare
   v_entry_id uuid;
   v_existing public.hrs_allocations%rowtype;
   v_existing_entry public.hrs_token_ledger%rowtype;
+  v_wallet public.hrs_wallets%rowtype;
   v_key text;
 begin
   if coalesce(auth.role(), '') <> 'service_role' then
@@ -261,16 +266,22 @@ begin
   returning id into v_wallet_id;
 
   if v_wallet_id is null then
-    select id into v_wallet_id from public.hrs_wallets
+    select * into v_wallet from public.hrs_wallets
     where tenant_id = p_tenant_id and employee_id = p_employee_id
     for update;
+    v_wallet_id := v_wallet.id;
   end if;
 
-  if not exists (
-    select 1 from public.hrs_wallets
-    where tenant_id = p_tenant_id and id = v_wallet_id
-      and status = 'active' and custodian = 'peopleos' and employee_access = false
-  ) then
+  if v_wallet_id is null then
+    raise exception 'HRS wallet could not be provisioned' using errcode = '55000';
+  end if;
+
+  select * into v_wallet from public.hrs_wallets
+  where tenant_id = p_tenant_id and id = v_wallet_id
+  for update;
+  if not found or v_wallet.status <> 'active'
+     or v_wallet.custodian <> 'peopleos' or v_wallet.employee_access is distinct from false
+     or v_wallet.signing_key_reference <> p_signing_key_reference then
     raise exception 'HRS wallet unavailable or custody policy violation' using errcode = '55000';
   end if;
 
@@ -284,7 +295,8 @@ begin
     if v_existing.scheduled_minutes <> p_scheduled_minutes
        or v_existing.schedule_period_start <> p_period_start
        or v_existing.schedule_period_end <> p_period_end
-       or v_existing.source_reference <> p_source_reference then
+       or v_existing.source_reference <> p_source_reference
+       or v_existing.created_by is distinct from p_approved_by then
       raise exception 'Schedule version already exists with different contents'
         using errcode = '23505';
     end if;
@@ -294,7 +306,12 @@ begin
     if not found or v_existing_entry.wallet_id <> v_wallet_id
        or v_existing_entry.allocation_id <> v_allocation_id
        or v_existing_entry.entry_type <> 'mint'
-       or v_existing_entry.units <> p_scheduled_minutes then
+       or v_existing_entry.units <> p_scheduled_minutes
+       or v_existing_entry.source_reference <> p_source_reference
+       or v_existing_entry.occurred_at <> p_approved_at
+       or v_existing_entry.actor_type <> 'manager'
+       or v_existing_entry.actor_user_id is distinct from p_approved_by
+       or v_existing_entry.metadata <> jsonb_build_object('schedule_version', p_schedule_version) then
       raise exception 'Existing schedule allocation has no matching HRS mint entry'
         using errcode = '55000';
     end if;
