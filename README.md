@@ -52,6 +52,7 @@ Requires Python 3.12.
 
     python -m pip install -r contracts/requirements.txt
     vyper contracts/src/HrsToken.vy
+    vyper contracts/src/HrsController.vy
     python -m pytest contracts/tests -q
 
 The Vyper contract workflow runs compilation and local EVM tests on pull requests and pushes to `main`.
@@ -68,6 +69,6 @@ To intentionally refresh the committed dependency lockfile after changing `packa
 ## Release status
 The application has Supabase SSR/browser/admin client boundaries, email magic-link authentication, authenticated tenant onboarding, a tenant-isolated employer dashboard, a private document bucket with tenant-folder policies, and HRS database posting primitives. The application migration has not yet been applied to a real Supabase project because no project reference or credentials were supplied in the build session.
 
-A first Vyper ERC-20 HRS token contract and local EVM tests are now in the repository. The contract is not deployed or independently audited. The PostgreSQL HRS ledger is not yet connected to the chain. No live chain issuance, external market, swap, employee payout, or payroll disbursement is enabled. See `contracts/README.md` for the remaining controls and deployment gates.
+The Vyper HRS token and idempotent mint/burn controller are in the repository with local EVM tests. They are not deployed or independently audited. The PostgreSQL HRS ledger is not yet connected to the chain. No live chain issuance, external market, swap, employee payout, or payroll disbursement is enabled. See `contracts/README.md` for the remaining controls and deployment gates.
 
 Never put service-role keys, provider secrets, tax identifiers, bank details, private keys, seed phrases, or sensitive employee data in agent files or source control.
