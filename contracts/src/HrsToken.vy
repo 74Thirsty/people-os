@@ -58,8 +58,7 @@ def __init__(name_: String[64], symbol_: String[16], admin_: address):
     self.symbol = symbol_
     self.decimals = 18
     self.admin = admin_
-    self.minters[admin_] = True
-    self.burners[admin_] = True
+    # Minting and burning are delegated to the idempotent HrsController.
     self.custodians[admin_] = True
     self.paused = False
 
