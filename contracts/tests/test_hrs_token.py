@@ -185,3 +185,15 @@ def test_admin_can_authorize_and_revoke_a_custody_address(token, actors):
 
     with boa.env.prank(actors["outsider"]), boa.reverts("sender not custodian"):
         token.transfer(actors["treasury"], 1)
+
+
+def test_authorized_burner_can_retire_balance_after_custodian_revocation(token, actors):
+    with boa.env.prank(actors["admin"]):
+        token.mint(actors["custody_wallet"], 3 * 10**18)
+        token.set_custodian(actors["custody_wallet"], False)
+
+    with boa.env.prank(actors["admin"]):
+        token.burn_from(actors["custody_wallet"], 3 * 10**18)
+
+    assert token.balanceOf(actors["custody_wallet"]) == 0
+    assert token.totalSupply() == 0
