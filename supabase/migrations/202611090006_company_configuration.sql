@@ -109,7 +109,24 @@ begin
   if p_configuration is null or jsonb_typeof(p_configuration) <> 'object'
      or pg_column_size(p_configuration) > 1048576
      or p_configuration->>'tenant_id' is distinct from p_tenant_id::text
-     or p_configuration->>'schema_version' is distinct from '1.0.0' then
+     or p_configuration->>'schema_version' is distinct from '1.0.0'
+     or jsonb_typeof(p_configuration->'company') <> 'object'
+     or jsonb_typeof(p_configuration->'contact') <> 'object'
+     or jsonb_typeof(p_configuration->'administrators') <> 'array'
+     or jsonb_typeof(p_configuration->'managers') <> 'array'
+     or jsonb_typeof(p_configuration->'employees') <> 'array'
+     or jsonb_typeof(p_configuration->'permissions') <> 'object'
+     or jsonb_typeof(p_configuration->'policies') <> 'object'
+     or jsonb_typeof(p_configuration->'payroll') <> 'object'
+     or jsonb_typeof(p_configuration->'integrations') <> 'object'
+     or jsonb_typeof(p_configuration->'agents') <> 'object'
+     or jsonb_typeof(p_configuration->'hrs') <> 'object'
+     or length(coalesce(p_configuration #>> '{company,legal_name}','')) not between 2 and 200
+     or length(coalesce(p_configuration #>> '{company,display_name}','')) not between 2 and 120
+     or not exists (
+       select 1 from pg_catalog.pg_timezone_names
+       where name = p_configuration #>> '{company,timezone}'
+     ) then
     raise exception 'Invalid company configuration envelope' using errcode='22023';
   end if;
   if coalesce(p_configuration #>> '{hrs,employee_wallet_access}','false') <> 'false' then
@@ -127,6 +144,13 @@ begin
   if v_revision is null then
     raise exception 'Configuration revision conflict; reload before saving' using errcode='40001';
   end if;
+
+  update public.tenants
+  set legal_name=p_configuration #>> '{company,legal_name}',
+      display_name=p_configuration #>> '{company,display_name}',
+      timezone=p_configuration #>> '{company,timezone}',
+      updated_at=now()
+  where id=p_tenant_id;
 
   insert into public.audit_events(
     tenant_id,actor_user_id,actor_type,event_type,subject_type,subject_id,source_channel,payload
