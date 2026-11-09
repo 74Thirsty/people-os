@@ -49,9 +49,10 @@ Review [the Supabase application setup guide](docs/supabase-application-setup.md
     npm run lint
     npm test
     npm run build
+    npm audit --audit-level=high
 
 ## Release status
-The application now has Supabase SSR/browser/admin client boundaries, email magic-link authentication, authenticated tenant onboarding, a tenant-isolated employer dashboard, a private document bucket with tenant-folder policies, and HRS database posting primitives. The application migration has not yet been applied to a real Supabase project because no project reference or credentials were supplied in this build session.
+The application now has Supabase SSR/browser/admin client boundaries, email magic-link authentication, authenticated tenant onboarding, a tenant-isolated employer dashboard, a private document bucket with tenant-folder policies, and HRS database posting primitives. The application migration has not yet been applied to a real Supabase project because no project reference or credentials were supplied in this build session. The CI pipeline also checks the installed dependency tree for high and critical npm advisories.
 
 HRS wallet provisioning and ledger posting remain server-only. The dashboard does not call HRS posting RPCs. Before enabling schedule minting or clock consumption, wire real schedule authorization, employee identity verification, signed source-event validation, replay protection, tenant RBAC, and KMS/HSM-backed key-reference resolution. No live chain issuance, external market, employee payout, or payroll disbursement is enabled.
 
