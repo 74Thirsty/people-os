@@ -17,12 +17,17 @@ def actors():
 
 @pytest.fixture
 def token(actors):
-    return boa.load(
+    deployed = boa.load(
         "contracts/src/HrsToken.vy",
         "PeopleOS Hours",
         "HRS",
         actors["admin"],
     )
+    with boa.env.prank(actors["admin"]):
+        deployed.set_custodian(actors["treasury"], True)
+        deployed.set_custodian(actors["custody_wallet"], True)
+        deployed.set_custodian(actors["spender"], True)
+    return deployed
 
 
 def test_deployment_sets_metadata_and_separates_roles(token, actors):
@@ -33,6 +38,7 @@ def test_deployment_sets_metadata_and_separates_roles(token, actors):
     assert token.admin() == actors["admin"]
     assert token.minters(actors["admin"]) is True
     assert token.burners(actors["admin"]) is True
+    assert token.custodians(actors["admin"]) is True
 
 
 def test_only_admin_can_grant_mint_and_burn_roles(token, actors):
@@ -139,9 +145,43 @@ def test_admin_transfer_does_not_silently_grant_mint_or_burn_roles(token, actors
     assert token.admin() == actors["outsider"]
     assert token.minters(actors["outsider"]) is False
     assert token.burners(actors["outsider"]) is False
+    assert token.minters(actors["admin"]) is False
+    assert token.burners(actors["admin"]) is False
+    assert token.custodians(actors["admin"]) is False
 
     with boa.env.prank(actors["admin"]), boa.reverts("admin only"):
         token.pause()
 
     with boa.env.prank(actors["outsider"]):
         token.set_minter(actors["outsider"], True)
+
+
+def test_non_custodial_addresses_cannot_receive_or_spend_hrs(token, actors):
+    with boa.env.prank(actors["admin"]):
+        token.mint(actors["treasury"], 2 * 10**18)
+
+    with boa.env.prank(actors["treasury"]), boa.reverts("receiver not custodian"):
+        token.transfer(actors["outsider"], 10**18)
+
+    with boa.env.prank(actors["treasury"]), boa.reverts("spender not custodian"):
+        token.approve(actors["outsider"], 10**18)
+
+    with boa.env.prank(actors["admin"]), boa.reverts("receiver not custodian"):
+        token.mint(actors["outsider"], 10**18)
+
+
+def test_admin_can_authorize_and_revoke_a_custody_address(token, actors):
+    with boa.env.prank(actors["admin"]):
+        token.set_custodian(actors["outsider"], True)
+        token.mint(actors["treasury"], 10**18)
+
+    with boa.env.prank(actors["treasury"]):
+        token.transfer(actors["outsider"], 10**18)
+
+    assert token.balanceOf(actors["outsider"]) == 10**18
+
+    with boa.env.prank(actors["admin"]):
+        token.set_custodian(actors["outsider"], False)
+
+    with boa.env.prank(actors["outsider"]), boa.reverts("sender not custodian"):
+        token.transfer(actors["treasury"], 1)
