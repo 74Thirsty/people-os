@@ -65,7 +65,10 @@ function validate(input: HrsPostingInput): void {
 async function rpcUuid(client: HrsRpcClient, name: string, args: Record<string, unknown>): Promise<string> {
   const { data, error } = await client.rpc(name, args);
   if (error) throw new Error("HRS RPC failed: " + error.message);
-  if (typeof data !== "string" || !data) throw new Error("HRS RPC returned no UUID");
+  if (typeof data !== "string" || !data) {
+    const missingValue = name === "post_hrs_allocation_event" ? "ledger entry ID" : "wallet ID";
+    throw new Error("HRS RPC returned no " + missingValue);
+  }
   return data;
 }
 async function post(
