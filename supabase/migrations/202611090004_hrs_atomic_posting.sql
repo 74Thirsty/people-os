@@ -197,3 +197,133 @@ comment on function public.provision_hrs_wallet(uuid, uuid, text) is
   'Creates an employee-attributed HRS wallet held exclusively in PeopleOS custody. Service role only.';
 comment on function public.post_hrs_allocation_event(uuid, uuid, uuid, text, bigint, text, text, timestamptz, text, uuid, jsonb) is
   'Atomically posts idempotent HRS mint/consume/release/correction entries. Service role only; caller must validate source evidence.';
+
+
+-- Approved schedule provisioning + initial mint in one database transaction.
+-- The trusted caller must authenticate the approver before invoking this RPC.
+alter table public.hrs_allocations
+  add column if not exists schedule_version text;
+alter table public.hrs_allocations
+  add column if not exists source_reference text;
+
+create unique index if not exists hrs_allocations_schedule_version_uidx
+  on public.hrs_allocations(tenant_id, employee_id, schedule_version)
+  where schedule_version is not null;
+
+create or replace function public.create_and_mint_hrs_schedule(
+  p_tenant_id uuid,
+  p_employee_id uuid,
+  p_period_start date,
+  p_period_end date,
+  p_scheduled_minutes integer,
+  p_schedule_version text,
+  p_approved_by uuid,
+  p_approved_at timestamptz,
+  p_source_reference text,
+  p_signing_key_reference text
+)
+returns table (wallet_id uuid, allocation_id uuid, ledger_entry_id uuid)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_wallet_id uuid;
+  v_allocation_id uuid;
+  v_entry_id uuid;
+  v_existing public.hrs_allocations%rowtype;
+  v_existing_entry public.hrs_token_ledger%rowtype;
+  v_key text;
+begin
+  if coalesce(auth.role(), '') <> 'service_role' then
+    raise exception 'service_role required' using errcode = '42501';
+  end if;
+  if p_tenant_id is null or p_employee_id is null or p_period_start is null
+     or p_period_end is null or p_period_end < p_period_start
+     or p_scheduled_minutes is null or p_scheduled_minutes <= 0
+     or p_schedule_version is null or length(trim(p_schedule_version)) < 1
+     or length(trim(p_schedule_version)) > 100
+     or p_approved_by is null or p_approved_at is null
+     or p_source_reference is null or length(trim(p_source_reference)) < 1
+     or length(trim(p_source_reference)) > 300
+     or p_signing_key_reference is null
+     or length(trim(p_signing_key_reference)) < 8
+     or length(trim(p_signing_key_reference)) > 300 then
+    raise exception 'Invalid approved HRS schedule input' using errcode = '22023';
+  end if;
+
+  insert into public.hrs_wallets (
+    tenant_id, employee_id, custodian, employee_access, signing_key_reference
+  ) values (
+    p_tenant_id, p_employee_id, 'peopleos', false, p_signing_key_reference
+  )
+  on conflict (tenant_id, employee_id) do nothing
+  returning id into v_wallet_id;
+
+  if v_wallet_id is null then
+    select id into v_wallet_id from public.hrs_wallets
+    where tenant_id = p_tenant_id and employee_id = p_employee_id
+    for update;
+  end if;
+
+  if not exists (
+    select 1 from public.hrs_wallets
+    where tenant_id = p_tenant_id and id = v_wallet_id
+      and status = 'active' and custodian = 'peopleos' and employee_access = false
+  ) then
+    raise exception 'HRS wallet unavailable or custody policy violation' using errcode = '55000';
+  end if;
+
+  v_key := 'schedule:' || p_employee_id::text || ':' || p_schedule_version;
+  select * into v_existing from public.hrs_allocations
+  where tenant_id = p_tenant_id and employee_id = p_employee_id
+    and schedule_version = p_schedule_version
+  for update;
+
+  if found then
+    if v_existing.scheduled_minutes <> p_scheduled_minutes
+       or v_existing.schedule_period_start <> p_period_start
+       or v_existing.schedule_period_end <> p_period_end
+       or v_existing.source_reference <> p_source_reference then
+      raise exception 'Schedule version already exists with different contents'
+        using errcode = '23505';
+    end if;
+    v_allocation_id := v_existing.id;
+    select * into v_existing_entry from public.hrs_token_ledger
+    where tenant_id = p_tenant_id and idempotency_key = v_key;
+    if not found or v_existing_entry.wallet_id <> v_wallet_id
+       or v_existing_entry.allocation_id <> v_allocation_id
+       or v_existing_entry.entry_type <> 'mint'
+       or v_existing_entry.units <> p_scheduled_minutes then
+      raise exception 'Existing schedule allocation has no matching HRS mint entry'
+        using errcode = '55000';
+    end if;
+    return query select v_wallet_id, v_allocation_id, v_existing_entry.id;
+    return;
+  end if;
+
+  insert into public.hrs_allocations (
+    tenant_id, employee_id, schedule_period_start, schedule_period_end,
+    scheduled_minutes, created_by, schedule_version, source_reference
+  ) values (
+    p_tenant_id, p_employee_id, p_period_start, p_period_end,
+    p_scheduled_minutes, p_approved_by, p_schedule_version, p_source_reference
+  ) returning id into v_allocation_id;
+
+  insert into public.hrs_token_ledger (
+    tenant_id, wallet_id, allocation_id, entry_type, units,
+    idempotency_key, source_reference, occurred_at, actor_type, actor_user_id, metadata
+  ) values (
+    p_tenant_id, v_wallet_id, v_allocation_id, 'mint', p_scheduled_minutes,
+    v_key, p_source_reference, p_approved_at, 'manager', p_approved_by,
+    jsonb_build_object('schedule_version', p_schedule_version)
+  ) returning id into v_entry_id;
+
+  return query select v_wallet_id, v_allocation_id, v_entry_id;
+end;
+$$;
+
+revoke all on function public.create_and_mint_hrs_schedule(uuid, uuid, date, date, integer, text, uuid, timestamptz, text, text)
+  from public, anon, authenticated;
+grant execute on function public.create_and_mint_hrs_schedule(uuid, uuid, date, date, integer, text, uuid, timestamptz, text, text)
+  to service_role;
