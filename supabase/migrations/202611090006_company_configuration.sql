@@ -11,7 +11,7 @@ create table if not exists public.tenant_configurations (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint tenant_configuration_object check (jsonb_typeof(configuration) = 'object'),
-  constraint tenant_configuration_size check (pg_column_size(configuration) <= 1048576)
+  constraint tenant_configuration_size check (pg_column_size(configuration) <= 10485760)
 );
 
 alter table public.tenant_configurations enable row level security;
@@ -107,7 +107,7 @@ begin
     raise exception 'Company administrator permission required' using errcode='42501';
   end if;
   if p_configuration is null or jsonb_typeof(p_configuration) <> 'object'
-     or pg_column_size(p_configuration) > 1048576
+     or pg_column_size(p_configuration) > 10485760
      or p_configuration->>'tenant_id' is distinct from p_tenant_id::text
      or p_configuration->>'schema_version' is distinct from '1.0.0'
      or coalesce(jsonb_typeof(p_configuration->'company'),'') <> 'object'
