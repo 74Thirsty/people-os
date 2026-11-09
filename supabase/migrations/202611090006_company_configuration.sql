@@ -110,17 +110,17 @@ begin
      or pg_column_size(p_configuration) > 1048576
      or p_configuration->>'tenant_id' is distinct from p_tenant_id::text
      or p_configuration->>'schema_version' is distinct from '1.0.0'
-     or jsonb_typeof(p_configuration->'company') <> 'object'
-     or jsonb_typeof(p_configuration->'contact') <> 'object'
-     or jsonb_typeof(p_configuration->'administrators') <> 'array'
-     or jsonb_typeof(p_configuration->'managers') <> 'array'
-     or jsonb_typeof(p_configuration->'employees') <> 'array'
-     or jsonb_typeof(p_configuration->'permissions') <> 'object'
-     or jsonb_typeof(p_configuration->'policies') <> 'object'
-     or jsonb_typeof(p_configuration->'payroll') <> 'object'
-     or jsonb_typeof(p_configuration->'integrations') <> 'object'
-     or jsonb_typeof(p_configuration->'agents') <> 'object'
-     or jsonb_typeof(p_configuration->'hrs') <> 'object'
+     or coalesce(jsonb_typeof(p_configuration->'company'),'') <> 'object'
+     or coalesce(jsonb_typeof(p_configuration->'contact'),'') <> 'object'
+     or coalesce(jsonb_typeof(p_configuration->'administrators'),'') <> 'array'
+     or coalesce(jsonb_typeof(p_configuration->'managers'),'') <> 'array'
+     or coalesce(jsonb_typeof(p_configuration->'employees'),'') <> 'array'
+     or coalesce(jsonb_typeof(p_configuration->'permissions'),'') <> 'object'
+     or coalesce(jsonb_typeof(p_configuration->'policies'),'') <> 'object'
+     or coalesce(jsonb_typeof(p_configuration->'payroll'),'') <> 'object'
+     or coalesce(jsonb_typeof(p_configuration->'integrations'),'') <> 'object'
+     or coalesce(jsonb_typeof(p_configuration->'agents'),'') <> 'object'
+     or coalesce(jsonb_typeof(p_configuration->'hrs'),'') <> 'object'
      or length(coalesce(p_configuration #>> '{company,legal_name}','')) not between 2 and 200
      or length(coalesce(p_configuration #>> '{company,display_name}','')) not between 2 and 120
      or not exists (
