@@ -23,6 +23,11 @@ export interface ApprovedHrsSchedule {
   approvedBy: string;
   approvedAt: string;
 }
+export interface ApprovedHrsScheduleForProvisioning extends ApprovedHrsSchedule {
+  periodStart: string;
+  periodEnd: string;
+  signingKeyReference: string;
+}
 export interface VerifiedHrsClockEvent {
   tenantId: string;
   employeeId: string;
@@ -46,6 +51,22 @@ function assertPositiveMinutes(value: number, field: string): void {
 export function createHrsWorkflowService(client: HrsRpcClient, verifiers: HrsWorkflowVerifiers) {
   const posting = createHrsPostingService(client);
   return Object.freeze({
+    async createAndMintApprovedSchedule(schedule: ApprovedHrsScheduleForProvisioning) {
+      await verifiers.authorizeSchedule(schedule);
+      assertPositiveMinutes(schedule.scheduledMinutes, "scheduledMinutes");
+      return posting.createAndMintApprovedSchedule({
+        tenantId: schedule.tenantId,
+        employeeId: schedule.employeeId,
+        periodStart: schedule.periodStart,
+        periodEnd: schedule.periodEnd,
+        scheduledMinutes: schedule.scheduledMinutes,
+        scheduleVersion: schedule.scheduleVersion,
+        approvedBy: schedule.approvedBy,
+        approvedAt: schedule.approvedAt,
+        sourceReference: "approved-schedule:" + schedule.employeeId + ":" + schedule.scheduleVersion,
+        signingKeyReference: schedule.signingKeyReference
+      });
+    },
     async mintApprovedSchedule(schedule: ApprovedHrsSchedule): Promise<string> {
       await verifiers.authorizeSchedule(schedule);
       assertPositiveMinutes(schedule.scheduledMinutes, "scheduledMinutes");
