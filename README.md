@@ -41,7 +41,7 @@ Requires Node.js 22 and npm.
     npm run build
 
 ## Release status
-This is an engineering foundation, not a payroll-ready or custody-certified product. HRS wallet provisioning and atomic posting RPCs plus server-side TypeScript adapters now exist in the feature branch. They have not been applied to a Supabase project, wired to production schedule/clock-event sources, or connected to a KMS/HSM or qualified custody provider. The service-role key must never be exposed to browser or employee clients. No live HRS chain issuance, employee payout, or external token operation is enabled.
+This is an engineering foundation, not a payroll-ready or custody-certified product. HRS wallet provisioning, atomic ledger posting, atomic approved-schedule allocation/mint RPCs, and server-side TypeScript workflow adapters now exist in the feature branch. They have not been applied to a Supabase project, wired to production schedule/clock-event sources, or connected to a KMS/HSM or qualified custody provider. The service-role key must never be exposed to browser or employee clients. No live HRS chain issuance, employee payout, or external token operation is enabled.
 
 The trusted workflow requires production implementations of schedule authorization, employee identity verification, signed clock-event validation, replay protection, tenant RBAC, and audit-source retention before any posting is enabled. The database trusts only the service-role caller's evidence validation. Negative HRS correction/debit workflows and schedule revision automation remain unfinished.
 
