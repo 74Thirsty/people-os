@@ -24,7 +24,11 @@ export async function POST(request: Request) {
 
   let input: z.infer<typeof TenantInput>;
   try {
-    input = TenantInput.parse(await request.json());
+    const body = await request.text();
+    if (new TextEncoder().encode(body).byteLength > 8192) {
+      return NextResponse.json({ error: "Request body is too large" }, { status: 413 });
+    }
+    input = TenantInput.parse(JSON.parse(body));
   } catch {
     return NextResponse.json({ error: "Invalid tenant setup details" }, { status: 400 });
   }
