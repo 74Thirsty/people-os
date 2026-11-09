@@ -13,7 +13,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lockfile:refresh": "npm install --package-lock-only"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
