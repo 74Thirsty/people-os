@@ -12,6 +12,21 @@ const input = {
   occurredAt: "2026-11-09T08:00:00.000Z"
 };
 describe("HRS server posting adapter", () => {
+  it("provisions a custodial wallet using only an opaque key reference", async () => {
+    const { rpc, client } = makeClient("wallet-1");
+    const result = await createHrsPostingService(client).provisionWallet({
+      tenantId: "tenant-1",
+      employeeId: "employee-1",
+      signingKeyReference: "kms://peopleos/tenant-1/employee-1"
+    });
+    expect(result).toBe("wallet-1");
+    expect(rpc).toHaveBeenCalledWith("provision_hrs_wallet", {
+      p_tenant_id: "tenant-1",
+      p_employee_id: "employee-1",
+      p_signing_key_reference: "kms://peopleos/tenant-1/employee-1"
+    });
+  });
+
   it("calls the atomic schedule mint RPC with integer minutes", async () => {
     const { rpc, client } = makeClient();
     const result = await createHrsPostingService(client).mintSchedule(input);
