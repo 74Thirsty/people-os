@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function TenantForm() {
@@ -9,6 +9,7 @@ export default function TenantForm() {
   const [timezone, setTimezone] = useState("America/Chicago");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const requestKey = useRef<string | null>(null);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -20,7 +21,7 @@ export default function TenantForm() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           legalName, displayName: displayName || legalName, timezone,
-          requestKey: crypto.randomUUID()
+          requestKey: requestKey.current ?? (requestKey.current = crypto.randomUUID())
         })
       });
       const result = await response.json();
