@@ -3,7 +3,7 @@
 ## Product definition
 HRS is PeopleOS's proprietary custodial token for schedule and work accounting. One HRS represents one scheduled hour; timekeeping retains integer-minute precision. PeopleOS controls every wallet and all signing authority. Employees receive no HRS wallet access, keys, transfer capability, or withdrawal capability.
 
-The current foundation includes an internal PostgreSQL custody ledger, wallet provisioning RPC, atomic posting RPCs, a server-side TypeScript adapter, and workflow orchestration interfaces. It does not deploy an external blockchain token or connect to a KMS/HSM or custody provider.
+The current foundation includes an internal PostgreSQL custody ledger, wallet provisioning RPC, atomic posting RPCs, an atomic create-allocation-and-mint RPC, a server-side TypeScript adapter, and workflow orchestration interfaces. It does not deploy an external blockchain token or connect to a KMS/HSM or custody provider.
 
 ## Three independent systems
 1. **Custodial HRS token ledger:** schedule minting, verified-work consumption, unused allocation release, and positive manager-approved correction credits.
@@ -22,7 +22,7 @@ The current foundation includes an internal PostgreSQL custody ledger, wallet pr
 - Agents may initiate authorized workflows but cannot call the service-role RPC or sign transactions.
 
 ## HRS lifecycle
-1. An approved schedule creates an allocation in the existing hrs_allocations table. The trusted workflow authorizes it, then mints exactly its scheduled minutes into the employee-attributed custodial wallet.
+1. The trusted workflow authorizes an approved schedule, then one database transaction creates its hrs_allocations record, provisions or resolves the employee-attributed custodial wallet, and mints exactly its scheduled minutes.
 2. Authenticated clock events are validated by the timekeeping service. The trusted workflow consumes verified compensable minutes, excluding unpaid breaks.
 3. Schedule changes release unused allocation without deleting history. Revised schedules should use a new approved allocation/version.
 4. Work beyond allocation becomes a verified-time exception, not discarded work or a negative wallet balance.
