@@ -121,6 +121,11 @@ begin
      or coalesce(jsonb_typeof(p_configuration->'integrations'),'') <> 'object'
      or coalesce(jsonb_typeof(p_configuration->'agents'),'') <> 'object'
      or coalesce(jsonb_typeof(p_configuration->'hrs'),'') <> 'object'
+     or coalesce(jsonb_typeof(p_configuration->'audit'),'') <> 'object'
+     or coalesce(jsonb_typeof(p_configuration #> '{permissions,roles}'),'') <> 'array'
+     or coalesce(jsonb_typeof(p_configuration #> '{permissions,custom_permissions}'),'') <> 'array'
+     or coalesce(jsonb_typeof(p_configuration #> '{permissions,approval_hierarchy}'),'') <> 'array'
+     or (p_configuration - array['schema_version','tenant_id','company','contact','administrators','managers','employees','permissions','policies','payroll','integrations','agents','hrs','audit']) <> '{}'::jsonb
      or length(coalesce(p_configuration #>> '{company,legal_name}','')) not between 2 and 200
      or length(coalesce(p_configuration #>> '{company,display_name}','')) not between 2 and 120
      or not exists (
