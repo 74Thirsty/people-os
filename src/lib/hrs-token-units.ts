@@ -19,9 +19,13 @@ function toMinutes(value: number, field: string): bigint {
   return BigInt(value);
 }
 
+function unitsForMinuteCount(minutes: bigint): bigint {
+  return (minutes * HRS_TOKEN_SCALE) / MINUTES_PER_HOUR;
+}
+
 /** Convert a cumulative minute quantity into HRS token base units. */
 export function hrsTokenUnitsForMinutes(minutes: number): bigint {
-  return (toMinutes(minutes, "minutes") * HRS_TOKEN_SCALE) / MINUTES_PER_HOUR;
+  return unitsForMinuteCount(toMinutes(minutes, "minutes"));
 }
 
 /**
@@ -38,8 +42,8 @@ export function hrsTokenUnitsDelta(
   if (next < previous) {
     throw new Error("next cumulative minutes cannot be less than previous cumulative minutes");
   }
-  const previousUnits = (previous * HRS_TOKEN_SCALE) / MINUTES_PER_HOUR;
-  const nextUnits = (next * HRS_TOKEN_SCALE) / MINUTES_PER_HOUR;
+  const previousUnits = unitsForMinuteCount(previous);
+  const nextUnits = unitsForMinuteCount(next);
   return nextUnits - previousUnits;
 }
 
@@ -53,5 +57,5 @@ export function remainingHrsTokenUnits(
   if (accounted > scheduled) {
     throw new Error("consumed and released minutes cannot exceed scheduled minutes");
   }
-  return hrsTokenUnitsForMinutes(Number(scheduled)) - hrsTokenUnitsForMinutes(Number(accounted));
+  return unitsForMinuteCount(scheduled) - unitsForMinuteCount(accounted);
 }
