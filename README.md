@@ -31,7 +31,7 @@ Next.js App Router, React, TypeScript, Supabase PostgreSQL/Auth/Storage, Zod, Vi
 Requires Node.js 22 and npm.
 
     cp .env.example .env.local
-    npm install
+    npm ci
     npm run dev
 
 Required application variables:
@@ -50,6 +50,8 @@ Review [the Supabase application setup guide](docs/supabase-application-setup.md
     npm test
     npm run build
     npm audit --audit-level=high
+
+To intentionally refresh the committed dependency lockfile after changing `package.json`, run `npm run lockfile:refresh` and commit both files.
 
 ## Release status
 The application now has Supabase SSR/browser/admin client boundaries, email magic-link authentication, authenticated tenant onboarding, a tenant-isolated employer dashboard, a private document bucket with tenant-folder policies, and HRS database posting primitives. The application migration has not yet been applied to a real Supabase project because no project reference or credentials were supplied in this build session. The CI pipeline also checks the installed dependency tree for high and critical npm advisories.
