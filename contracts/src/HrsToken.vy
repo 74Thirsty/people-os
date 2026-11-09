@@ -62,7 +62,7 @@ def set_minter(account: address, enabled: bool):
     assert msg.sender == self.admin, "admin only"
     assert account != empty(address), "zero account"
     self.minters[account] = enabled
-    log MinterUpdated(account, enabled)
+    log MinterUpdated(account=account, enabled=enabled)
 
 
 @external
@@ -70,7 +70,7 @@ def set_burner(account: address, enabled: bool):
     assert msg.sender == self.admin, "admin only"
     assert account != empty(address), "zero account"
     self.burners[account] = enabled
-    log BurnerUpdated(account, enabled)
+    log BurnerUpdated(account=account, enabled=enabled)
 
 
 @external
@@ -79,7 +79,7 @@ def transfer_admin(new_admin: address):
     assert new_admin != empty(address), "zero admin"
     previous: address = self.admin
     self.admin = new_admin
-    log AdminTransferred(previous, new_admin)
+    log AdminTransferred(previous_admin=previous, new_admin=new_admin)
 
 
 @external
@@ -87,7 +87,7 @@ def pause():
     assert msg.sender == self.admin, "admin only"
     assert not self.paused, "already paused"
     self.paused = True
-    log PauseChanged(True)
+    log PauseChanged(paused=True)
 
 
 @external
@@ -95,7 +95,7 @@ def unpause():
     assert msg.sender == self.admin, "admin only"
     assert self.paused, "not paused"
     self.paused = False
-    log PauseChanged(False)
+    log PauseChanged(paused=False)
 
 
 @external
@@ -106,7 +106,7 @@ def mint(receiver: address, amount: uint256) -> bool:
     assert amount > 0, "zero amount"
     self.totalSupply += amount
     self.balanceOf[receiver] += amount
-    log Transfer(empty(address), receiver, amount)
+    log Transfer(sender=empty(address), receiver=receiver, value=amount)
     return True
 
 
@@ -119,7 +119,7 @@ def burn_from(holder: address, amount: uint256) -> bool:
     assert self.balanceOf[holder] >= amount, "insufficient balance"
     self.balanceOf[holder] -= amount
     self.totalSupply -= amount
-    log Transfer(holder, empty(address), amount)
+    log Transfer(sender=holder, receiver=empty(address), value=amount)
     return True
 
 
@@ -130,7 +130,7 @@ def _transfer(sender: address, receiver: address, amount: uint256):
     assert self.balanceOf[sender] >= amount, "insufficient balance"
     self.balanceOf[sender] -= amount
     self.balanceOf[receiver] += amount
-    log Transfer(sender, receiver, amount)
+    log Transfer(sender=sender, receiver=receiver, value=amount)
 
 
 @external
@@ -145,7 +145,7 @@ def approve(spender: address, amount: uint256) -> bool:
     assert not self.paused, "paused"
     assert spender != empty(address), "zero spender"
     self.allowance[msg.sender][spender] = amount
-    log Approval(msg.sender, spender, amount)
+    log Approval(owner=msg.sender, spender=spender, value=amount)
     return True
 
 
@@ -156,6 +156,6 @@ def transferFrom(sender: address, receiver: address, amount: uint256) -> bool:
         approved: uint256 = self.allowance[sender][msg.sender]
         assert approved >= amount, "allowance exceeded"
         self.allowance[sender][msg.sender] = approved - amount
-        log Approval(sender, msg.sender, approved - amount)
+        log Approval(owner=sender, spender=msg.sender, value=approved - amount)
     self._transfer(sender, receiver, amount)
     return True
