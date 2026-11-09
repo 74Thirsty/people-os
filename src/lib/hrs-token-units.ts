@@ -8,9 +8,9 @@
  * repeated per-minute rounding from accumulating token drift.
  */
 
-export const HRS_TOKEN_DECIMALS = 18n;
-export const HRS_TOKEN_SCALE = 10n ** HRS_TOKEN_DECIMALS;
-export const MINUTES_PER_HOUR = 60n;
+export const HRS_TOKEN_DECIMALS = BigInt(18);
+export const HRS_TOKEN_SCALE = BigInt(10) ** HRS_TOKEN_DECIMALS;
+export const MINUTES_PER_HOUR = BigInt(60);
 
 function toMinutes(value: number, field: string): bigint {
   if (!Number.isSafeInteger(value) || value < 0) {
