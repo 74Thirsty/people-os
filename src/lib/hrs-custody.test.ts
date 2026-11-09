@@ -76,12 +76,12 @@ describe("custodial HRS wallets", () => {
     const valuation = valueHrs(10, {
       token: "HRS",
       quoteCurrency: "USD",
-      priceMicrosPerHrs: 1_250_00BigInt(0),
+      priceMicrosPerHrs: BigInt(1250000),
       source: "internal_model",
       observedAt: "2026-11-09T12:00:00Z",
       methodologyVersion: "v1"
     });
-    expect(valuation.valueMicros).toBe(12_500_00BigInt(0));
+    expect(valuation.valueMicros).toBe(BigInt(12500000));
     expect(valuation.isRedeemable).toBe(false);
   });
 });
