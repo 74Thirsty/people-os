@@ -5,7 +5,7 @@
 create table if not exists public.tenant_creation_requests (
   user_id uuid not null references auth.users(id) on delete cascade,
   request_key uuid not null,
-  request_hash text not null check (length(request_hash) = 64),
+  request_payload jsonb not null,
   tenant_id uuid references public.tenants(id) on delete restrict,
   created_at timestamptz not null default now(),
   primary key (user_id, request_key)
@@ -42,8 +42,8 @@ as $$
 declare
   v_user_id uuid := auth.uid();
   v_tenant_id uuid;
-  v_existing_hash text;
-  v_request_hash text;
+  v_existing_payload jsonb;
+  v_request_payload jsonb;
 begin
   if v_user_id is null then
     raise exception 'Authentication required' using errcode = '42501';
@@ -58,21 +58,22 @@ begin
     raise exception 'Unknown IANA time zone' using errcode = '22023';
   end if;
 
-  v_request_hash := encode(
-    public.digest(convert_to(jsonb_build_array(trim(p_legal_name), trim(p_display_name), p_timezone)::text, 'UTF8'), 'sha256'),
-    'hex'
+  v_request_payload := jsonb_build_object(
+    'legal_name', trim(p_legal_name),
+    'display_name', trim(p_display_name),
+    'timezone', p_timezone
   );
 
-  insert into public.tenant_creation_requests(user_id, request_key, request_hash)
-  values (v_user_id, p_request_key, v_request_hash)
+  insert into public.tenant_creation_requests(user_id, request_key, request_payload)
+  values (v_user_id, p_request_key, v_request_payload)
   on conflict (user_id, request_key) do nothing;
 
-  select tenant_id, request_hash into v_tenant_id, v_existing_hash
+  select tenant_id, request_payload into v_tenant_id, v_existing_payload
   from public.tenant_creation_requests
   where user_id = v_user_id and request_key = p_request_key
   for update;
 
-  if v_existing_hash <> v_request_hash then
+  if v_existing_payload is distinct from v_request_payload then
     raise exception 'Request key was already used with different tenant details' using errcode = '23505';
   end if;
   if v_tenant_id is not null then
