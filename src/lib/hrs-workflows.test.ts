@@ -36,7 +36,6 @@ describe("HRS trusted workflow orchestration", () => {
     const service = createHrsWorkflowService(client, verifiers);
     const result = await service.createAndMintApprovedSchedule({
       tenantId: "tenant-1", employeeId: "employee-1",
-      walletId: "wallet-1", allocationId: "allocation-1",
       scheduledMinutes: 2400, scheduleVersion: "v3",
       approvedBy: "manager-1", approvedAt: "2026-11-09T08:00:00Z",
       periodStart: "2026-11-09", periodEnd: "2026-11-15",
