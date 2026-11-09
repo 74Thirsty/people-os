@@ -50,6 +50,7 @@ create table if not exists public.audit_events (
   created_at timestamptz not null default now()
 );
 
+create index if not exists tenant_memberships_user_id_idx on public.tenant_memberships(user_id, tenant_id);
 create index if not exists employees_tenant_status_idx on public.employees(tenant_id,employment_status);
 create index if not exists audit_events_tenant_created_idx on public.audit_events(tenant_id,created_at desc);
 create index if not exists audit_events_subject_idx on public.audit_events(tenant_id,subject_type,subject_id);
@@ -70,6 +71,11 @@ create policy "members can read their tenants" on public.tenants for select to a
 create policy "members can read tenant memberships" on public.tenant_memberships for select to authenticated using (public.is_tenant_member(tenant_id));
 create policy "members can read employees" on public.employees for select to authenticated using (public.is_tenant_member(tenant_id));
 create policy "members can read audit events" on public.audit_events for select to authenticated using (public.is_tenant_member(tenant_id));
+
+-- Explicit least-privilege table grants; RLS remains the tenant boundary.
+revoke all on public.tenants, public.tenant_memberships, public.employees, public.audit_events from anon;
+grant select on public.tenants, public.tenant_memberships, public.employees, public.audit_events to authenticated;
+revoke insert, update, delete, truncate, references, trigger on public.tenants, public.tenant_memberships, public.employees, public.audit_events from authenticated;
 
 -- Intentionally no client-side write policies yet. Add writes only with
 -- server-side authorization, permission checks, idempotency, and audit logging.
