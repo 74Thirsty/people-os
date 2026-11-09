@@ -1,52 +1,36 @@
-# HRS and on-demand earned wage access
+# HRS custodial token and valuation architecture
 
 ## Product definition
+HRS is PeopleOS's proprietary custodial token for schedule and work accounting. One HRS represents one scheduled hour; timekeeping retains integer-minute precision. PeopleOS controls every wallet and all signing authority. Employees receive no HRS wallet access, keys, transfer capability, or withdrawal capability.
 
-**HRS** is PeopleOS's proprietary, employee-specific unit for tracking scheduled and verified work time. One HRS equals one hour; persistence uses integer minutes (60 minutes = 1 HRS) so partial shifts are exact. HRS is an internal accounting unit—not currency, a deposit, a transferable asset, a security, or a blockchain token.
+The current foundation is an internal PostgreSQL custody ledger. It defines wallet attribution, immutable token entries, and separate valuation observations. It does not yet deploy an external blockchain token or connect to a custody provider.
 
-The initial implementation is an off-chain, tenant-scoped ledger in PostgreSQL. Do not introduce a public blockchain, wallet, token exchange, transfer, or speculative token value.
+## Three independent systems
+1. Custodial HRS token ledger: schedule minting, verified-work consumption, unused allocation release, and corrections.
+2. Earned-value/payroll ledger: verified compensable time valued using effective-dated pay rates and deterministic payroll rules. HRS quantity and valuation are never wage-calculation inputs.
+3. HRS valuation/economics: separately versioned internal valuation models and external market observations. HRS valuation may change independently of its timekeeping role; an observation does not itself create redemption rights or employee wage entitlements.
 
-## Lifecycle
+## Custody and security
+- Private keys are never stored in PostgreSQL, agent files, logs, source control, or browser code.
+- The signing-key reference is an opaque identifier resolved only by a dedicated KMS/HSM-backed custody service or qualified custodian.
+- No employee signing, transfer, withdrawal, seed phrase, wallet export, or direct wallet API.
+- Postings must be server-side, tenant-scoped, atomic, idempotent, authorized, and auditable.
+- Wallets can be frozen. Corrections are compensating entries.
+- Agents may initiate authorized workflows but cannot sign transactions or write ledger tables.
 
-1. **Schedule mint:** Once a schedule is approved, PeopleOS creates an allocation equal to scheduled minutes. Example: a 40-hour week receives an allocation of 2,400 minutes (40 HRS).
-2. **Verified work consumption:** Authenticated clock events and approved time corrections consume allocated HRS as work is performed. Breaks and unpaid time do not consume HRS.
-3. **Schedule changes:** Cancelled or reduced shifts release the unworked allocation. Released HRS are not wages and cannot be cashed out.
-4. **Overages:** Work beyond an allocation is not silently discarded or forced into a negative balance. It is recorded as an exception and enters the verified-time approval path; approved overtime is handled by the deterministic payroll engine.
-5. **Period close:** Reconcile schedule allocation, verified time, exceptions, leave treatment, and released capacity. Corrections append compensating ledger entries; never rewrite history.
+## HRS lifecycle
+1. Approved schedule version mints HRS to the employee-attributed custodial wallet (40 scheduled hours = 40 HRS).
+2. Authenticated clock events and approved corrections consume HRS as verified work occurs.
+3. Schedule changes release unused allocation without deleting history.
+4. Work beyond allocation becomes a verified-time exception, not discarded work or a negative wallet balance.
+5. Period close reconciles minted, consumed, released, and exception quantities.
 
-## Separate time accounting from wage accounting
+## Valuation boundary
+HRS's internal accounting function does not mathematically cap its independent token valuation. The system records quote currency, timestamp, source, evidence reference, and methodology version. Modeled values must be labeled as models; market values require verifiable market evidence. No price appreciation is promised or assumed.
 
-HRS measures time only. A separate earned-wage ledger values verified compensable time using the employee's effective-dated pay rate, jurisdiction, overtime rules, and applicable deductions. An HRS balance must never be multiplied by an assumed rate and treated as payable cash without a completed payroll calculation.
+This foundation does not launch a public token, exchange, market, liquidity pool, redemption program, or price-support mechanism. External issuance, transferability, listing, liquidity, buybacks, or marketing of appreciation require a separately approved token-economics specification and specialist legal review. Do not manufacture volume, manipulate price, or misstate backing.
 
-## On-demand access to earned wages
+## Earned value and payout boundary
+Verified work is valued independently using employee compensation terms and deterministic payroll calculations. On-demand payout is a separate workflow against eligible earned compensation, with earning references, payout reservations, provider idempotency, settlement confirmation, reversals, and reconciliation. HRS tokens and HRS market valuation are not employee wages and are not cashed out by employees.
 
-The employee experience should support requesting a payout of any amount up to the currently eligible earned-wage amount, including partial cash-outs. PeopleOS must calculate the eligible amount deterministically and account for prior advances, fees, withholding/tax treatment, garnishments, reversals, and provider limits.
-
-The employer may pre-fund or maintain a designated payroll funding balance with an approved provider. PeopleOS records funding, available provider balance, payout requests, provider confirmations, fees, and reconciliation. Funding held by a provider is not an HRS balance and must not be represented as employee wages until earned under applicable rules.
-
-**No direct money movement is part of the HRS ledger.** Actual payouts must go through a vetted payroll / earned-wage-access / payment provider after legal and jurisdiction review. Before enabling this feature, determine whether the product or provider arrangement triggers federal or state wage-payment, earned-wage-access, money-transmission, lending, fee, disclosure, payroll-tax, or other obligations. Do not assume that calling a payout an advance or using an internal token removes those obligations.
-
-## Security and accounting invariants
-
-- Every allocation and ledger entry is tenant- and employee-scoped.
-- Posting must be server-side, authorized, idempotent, atomic, and auditable.
-- The LLM can interpret a schedule or clock-in request but cannot mint, consume, release, or adjust HRS directly.
-- Clock events require identity checks and replay protection; corrections require a reason and actor.
-- Ledger entries are append-only. Corrections use compensating entries with source references.
-- Employees may view their own time and earned-wage information; managers see only authorized employees; administrators and auditors have explicitly scoped access.
-- Never let a business agent file override the platform's ledger, authorization, identity, or legal controls.
-- Do not permit HRS transfers between employees or tenants.
-- No employee payout may exceed the eligible earned-wage amount or be processed twice. Use idempotency keys and provider reconciliation.
-
-## Release gates
-
-Do not activate production minting, employee cash-outs, employer prefunding, or payment provider calls until all of the following are implemented and tested:
-
-1. Server-side posting function with allocation locking and mint/consume/release invariants.
-2. Identity-verified clock-in/out and break handling, including duplicate and out-of-order webhook tests.
-3. Effective-dated compensation and deterministic overtime/pay calculations.
-4. Earned-wage eligibility calculation with jurisdiction-specific policy and required disclosures.
-5. Provider due diligence, funding reconciliation, payout idempotency, reversals, failure handling, and audit evidence.
-6. Role/tenant authorization, employee data access controls, security testing, and legal/payroll review for each launch jurisdiction.
-
-Until then, HRS is a schema and domain-model foundation only. No live balance, wages, or cash-out availability should be displayed as real.
+No live payout or external token operation is enabled by this foundation.
