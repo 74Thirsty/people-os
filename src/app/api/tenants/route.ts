@@ -10,6 +10,14 @@ const TenantInput = z.object({
 }).strict();
 
 export async function POST(request: Request) {
+  const contentType = request.headers.get("content-type") ?? "";
+  const contentLength = Number(request.headers.get("content-length") ?? "0");
+  if (!contentType.toLowerCase().includes("application/json")) {
+    return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
+  }
+  if (Number.isFinite(contentLength) && contentLength > 8192) {
+    return NextResponse.json({ error: "Request body is too large" }, { status: 413 });
+  }
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
@@ -28,7 +36,7 @@ export async function POST(request: Request) {
     p_request_key: input.requestKey
   });
   if (error) {
-    return NextResponse.json({ error: "Unable to create workspace: " + error.message }, { status: 400 });
+    return NextResponse.json({ error: "Unable to create workspace. Verify the details and try again." }, { status: 500 });
   }
   return NextResponse.json({ tenantId: data }, { status: 201 });
 }
