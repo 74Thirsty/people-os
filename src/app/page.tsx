@@ -45,7 +45,7 @@ export default async function HomePage() {
             <div><span className="label">Employees</span><strong>{tenant.employeeCount}</strong></div>
             <div><span className="label">Time zone</span><strong className="timezone">{tenant.timezone}</strong></div>
           </div>
-          <div className="workspace-foot"><span>{tenant.legal_name}</span><span>{tenant.id.slice(0, 8)}…</span></div>
+          <div className="workspace-foot"><span>{tenant.legal_name}</span><Link className="text-link" href={`/tenants/${tenant.id}/configuration`}>Company configuration →</Link></div>
         </article>)}
       </section>
       <h2 className="section">Connected platform services</h2>
