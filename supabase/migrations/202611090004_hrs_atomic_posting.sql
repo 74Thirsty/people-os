@@ -3,6 +3,11 @@
 -- be a trusted server workflow that has already authenticated clock evidence.
 -- No browser/employee/agent credential may invoke these functions.
 
+alter table public.hrs_token_ledger
+  add constraint hrs_token_ledger_allocation_fk
+  foreign key (tenant_id, allocation_id)
+  references public.hrs_allocations(tenant_id, id) on delete restrict;
+
 create or replace function public.provision_hrs_wallet(
   p_tenant_id uuid,
   p_employee_id uuid,
@@ -85,13 +90,13 @@ begin
     raise exception 'service_role required' using errcode = '42501';
   end if;
   if p_tenant_id is null or p_wallet_id is null or p_allocation_id is null
-     or p_entry_type not in ('mint','consume','release','correction')
+     or p_entry_type is null or p_entry_type not in ('mint','consume','release','correction')
      or p_units is null or p_units <= 0
      or p_idempotency_key is null or length(trim(p_idempotency_key)) < 8
      or length(trim(p_idempotency_key)) > 200
-     or p_source_reference is null or length(trim(p_source_reference)) = 0
+     or p_source_reference is null or length(trim(p_source_reference)) = 0 or length(trim(p_source_reference)) > 300
      or p_occurred_at is null
-     or p_actor_type not in ('manager','administrator','agent','system','provider') then
+     or p_actor_type is null or p_actor_type not in ('manager','administrator','system','provider') then
     raise exception 'Invalid HRS posting input' using errcode = '22023';
   end if;
 
