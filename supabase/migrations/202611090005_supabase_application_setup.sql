@@ -93,6 +93,41 @@ $$;
 revoke all on function public.create_tenant_for_current_user(text, text, text, uuid) from public, anon;
 grant execute on function public.create_tenant_for_current_user(text, text, text, uuid) to authenticated;
 
+-- Safe tenant-folder policy helpers. Validate before casting arbitrary object paths to UUID.
+create or replace function public.storage_object_tenant_member(object_name text)
+returns boolean
+language plpgsql stable security definer
+set search_path = ''
+as $$
+declare
+  v_tenant_folder text := (storage.foldername(object_name))[1];
+begin
+  if v_tenant_folder is null or v_tenant_folder !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then
+    return false;
+  end if;
+  return public.is_tenant_member(v_tenant_folder::uuid);
+end;
+$$;
+
+create or replace function public.storage_object_tenant_role(object_name text, allowed_roles text[])
+returns boolean
+language plpgsql stable security definer
+set search_path = ''
+as $$
+declare
+  v_tenant_folder text := (storage.foldername(object_name))[1];
+begin
+  if v_tenant_folder is null or v_tenant_folder !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then
+    return false;
+  end if;
+  return public.has_tenant_role(v_tenant_folder::uuid, allowed_roles);
+end;
+$$;
+revoke all on function public.storage_object_tenant_member(text) from public, anon;
+revoke all on function public.storage_object_tenant_role(text, text[]) from public, anon;
+grant execute on function public.storage_object_tenant_member(text) to authenticated;
+grant execute on function public.storage_object_tenant_role(text, text[]) to authenticated;
+
 -- Private document bucket. Object names must begin with the tenant UUID folder.
 insert into storage.buckets(id, name, public, file_size_limit)
 values ('peopleos-documents', 'peopleos-documents', false, 26214400)
@@ -101,19 +136,14 @@ on conflict (id) do update set public = false, file_size_limit = 26214400;
 drop policy if exists "tenant members read PeopleOS documents" on storage.objects;
 create policy "tenant members read PeopleOS documents"
 on storage.objects for select to authenticated
-using (
-  bucket_id = 'peopleos-documents'
-  and (storage.foldername(name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-  and public.is_tenant_member(((storage.foldername(name))[1])::uuid)
-);
+using (bucket_id = 'peopleos-documents' and public.storage_object_tenant_member(name));
 
 drop policy if exists "tenant managers upload PeopleOS documents" on storage.objects;
 create policy "tenant managers upload PeopleOS documents"
 on storage.objects for insert to authenticated
 with check (
   bucket_id = 'peopleos-documents'
-  and (storage.foldername(name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-  and public.has_tenant_role(((storage.foldername(name))[1])::uuid, array['owner','administrator','manager'])
+  and public.storage_object_tenant_role(name, array['owner','administrator','manager'])
 );
 
 drop policy if exists "tenant managers update PeopleOS documents" on storage.objects;
@@ -121,13 +151,11 @@ create policy "tenant managers update PeopleOS documents"
 on storage.objects for update to authenticated
 using (
   bucket_id = 'peopleos-documents'
-  and (storage.foldername(name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-  and public.has_tenant_role(((storage.foldername(name))[1])::uuid, array['owner','administrator','manager'])
+  and public.storage_object_tenant_role(name, array['owner','administrator','manager'])
 )
 with check (
   bucket_id = 'peopleos-documents'
-  and (storage.foldername(name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-  and public.has_tenant_role(((storage.foldername(name))[1])::uuid, array['owner','administrator','manager'])
+  and public.storage_object_tenant_role(name, array['owner','administrator','manager'])
 );
 
 drop policy if exists "tenant owners delete PeopleOS documents" on storage.objects;
@@ -135,8 +163,7 @@ create policy "tenant owners delete PeopleOS documents"
 on storage.objects for delete to authenticated
 using (
   bucket_id = 'peopleos-documents'
-  and (storage.foldername(name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-  and public.has_tenant_role(((storage.foldername(name))[1])::uuid, array['owner','administrator'])
+  and public.storage_object_tenant_role(name, array['owner','administrator'])
 );
 
 comment on function public.create_tenant_for_current_user(text, text, text, uuid) is
