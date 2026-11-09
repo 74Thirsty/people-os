@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type Tenant = { id: string; legal_name: string; display_name: string; timezone: string; status: string; };
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
