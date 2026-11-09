@@ -8,8 +8,8 @@ A manager publishes or changes an employee schedule, or an employee submits a cl
 2. Validate employee status and manager authorization in the schedule service.
 3. Calculate scheduled duration in integer minutes, excluding unpaid breaks.
 4. Call createHrsWorkflowService(...).createAndMintApprovedSchedule(...) only after the schedule authorization verifier succeeds. One database transaction creates the schedule allocation, provisions or resolves the employee-attributed custodial wallet, and mints exactly the approved scheduled minutes. The database locks the wallet, enforces tenant/employee linkage and schedule-version idempotency, and posts the mint atomically.
-7. If a prior allocation is superseded, post a release for its unused remainder. Never edit or delete prior ledger entries.
-8. Notify the employee through the configured phone channel. Never expose HRS wallet access or balance controls.
+5. If a prior allocation is superseded, post a release for its unused remainder. Never edit or delete prior ledger entries.
+6. Notify the employee through the configured phone channel. Never expose HRS wallet access or balance controls.
 
 ## Clock-in and clock-out
 1. Verify employee identity and tenant context using the configured authentication policy.
