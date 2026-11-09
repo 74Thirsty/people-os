@@ -23,6 +23,32 @@ const clockEvent = {
   verificationReference: "signed-clock-event:event-123"
 };
 describe("HRS trusted workflow orchestration", () => {
+  it("creates the allocation, provisions custody, and mints in one atomic RPC after approval", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: [{ wallet_id: "wallet-1", allocation_id: "allocation-1", ledger_entry_id: "entry-1" }],
+      error: null
+    });
+    const client = { rpc } as unknown as HrsRpcClient;
+    const verifiers: HrsWorkflowVerifiers = {
+      authorizeSchedule: vi.fn().mockResolvedValue(undefined),
+      verifyClockEvent: vi.fn().mockResolvedValue(undefined)
+    };
+    const service = createHrsWorkflowService(client, verifiers);
+    const result = await service.createAndMintApprovedSchedule({
+      tenantId: "tenant-1", employeeId: "employee-1",
+      walletId: "wallet-1", allocationId: "allocation-1",
+      scheduledMinutes: 2400, scheduleVersion: "v3",
+      approvedBy: "manager-1", approvedAt: "2026-11-09T08:00:00Z",
+      periodStart: "2026-11-09", periodEnd: "2026-11-15",
+      signingKeyReference: "kms://peopleos/tenant-1/employee-1"
+    });
+    expect(verifiers.authorizeSchedule).toHaveBeenCalled();
+    expect(rpc).toHaveBeenCalledWith("create_and_mint_hrs_schedule", expect.objectContaining({
+      p_scheduled_minutes: 2400, p_schedule_version: "v3"
+    }));
+    expect(result).toEqual({ walletId: "wallet-1", allocationId: "allocation-1", ledgerEntryId: "entry-1" });
+  });
+
   it("authorizes an approved schedule before minting its exact scheduled minutes", async () => {
     const { rpc, verifiers, service } = setup();
     await service.mintApprovedSchedule(schedule);
