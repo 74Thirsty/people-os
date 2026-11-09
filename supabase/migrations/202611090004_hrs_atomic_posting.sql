@@ -327,3 +327,16 @@ revoke all on function public.create_and_mint_hrs_schedule(uuid, uuid, date, dat
   from public, anon, authenticated;
 grant execute on function public.create_and_mint_hrs_schedule(uuid, uuid, date, date, integer, text, uuid, timestamptz, text, text)
   to service_role;
+
+-- Approved schedule allocations are immutable snapshots. Revisions create a new
+-- schedule_version and compensating release entries; never rewrite old approvals.
+create or replace function public.reject_hrs_allocation_mutation()
+returns trigger language plpgsql set search_path = '' as $$
+begin
+  raise exception 'Approved HRS allocations are immutable; create a new schedule version';
+end;
+$$;
+drop trigger if exists hrs_allocations_no_mutation on public.hrs_allocations;
+create trigger hrs_allocations_no_mutation
+  before update or delete on public.hrs_allocations
+  for each row execute function public.reject_hrs_allocation_mutation();
