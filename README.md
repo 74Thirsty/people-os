@@ -41,7 +41,9 @@ Requires Node.js 22 and npm.
     npm run build
 
 ## Release status
-This is an engineering foundation, not a payroll-ready or custody-certified product. HRS wallet/ledger records are not yet connected to a KMS/HSM, custody provider, blockchain, or server-side posting service. No live HRS issuance, employee payout, or external token operation is enabled. HRS tables must remain inaccessible to browser and employee clients.
+This is an engineering foundation, not a payroll-ready or custody-certified product. HRS wallet provisioning and atomic posting RPCs plus server-side TypeScript adapters now exist in the feature branch. They have not been applied to a Supabase project, wired to production schedule/clock-event sources, or connected to a KMS/HSM or qualified custody provider. The service-role key must never be exposed to browser or employee clients. No live HRS chain issuance, employee payout, or external token operation is enabled.
+
+The trusted workflow requires production implementations of schedule authorization, employee identity verification, signed clock-event validation, replay protection, tenant RBAC, and audit-source retention before any posting is enabled. The database trusts only the service-role caller's evidence validation. Negative HRS correction/debit workflows and schedule revision automation remain unfinished.
 
 Before production use, implement and test tenant provisioning, identity verification, server-side RBAC, signed telephony webhooks and replay protection, consent/retention, Microsoft Graph OAuth with least privilege, versioned agent loading/review/rollback, durable workflows, deterministic time/payroll/tax services, custodial key management, atomic HRS posting, earned-wage eligibility, provider payout/reconciliation, security testing, backup/restore, observability, and jurisdiction-specific legal review.
 
