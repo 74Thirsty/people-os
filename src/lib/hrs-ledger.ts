@@ -1,7 +1,8 @@
 /**
- * HRS is PeopleOS's proprietary, tenant-scoped hour accounting unit.
+ * HRS schedule accounting ledger.
  * Quantities are stored as integer minutes to avoid floating-point drift.
- * HRS is not currency, a deposit, a security, or a transferable crypto-token.
+ * These database records are not on-chain token balances; see contracts/src/HrsToken.vy
+ * for the separate ERC-20 implementation and contracts/README.md for deployment gates.
  */
 
 export type HrsEntryType =

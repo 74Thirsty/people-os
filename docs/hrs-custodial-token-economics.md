@@ -3,7 +3,7 @@
 ## Product definition
 HRS is PeopleOS's proprietary custodial token for schedule and work accounting. One HRS represents one scheduled hour; timekeeping retains integer-minute precision. PeopleOS controls every wallet and all signing authority. Employees receive no HRS wallet access, keys, transfer capability, or withdrawal capability.
 
-The current foundation includes an internal PostgreSQL custody ledger, wallet provisioning RPC, atomic posting RPCs, an atomic create-allocation-and-mint RPC, a server-side TypeScript adapter, and workflow orchestration interfaces. It does not deploy an external blockchain token or connect to a KMS/HSM or custody provider.
+The repository now contains a first on-chain implementation at `contracts/src/HrsToken.vy`: a Vyper 0.4.3 ERC-20 token with separate admin, minter, and burner roles, pausing, and standard token transfers. This is source code only; it has not been deployed, audited, or connected to the application. The existing PostgreSQL custody ledger remains separate and is not itself an on-chain token. See [the contract implementation notes](../contracts/README.md) for explicit deployment gates.
 
 ## Three independent systems
 1. **Custodial HRS token ledger:** schedule minting, verified-work consumption, unused allocation release, and positive manager-approved correction credits.
@@ -20,6 +20,7 @@ The current foundation includes an internal PostgreSQL custody ledger, wallet pr
 - The posting RPC trusts the service-role caller's assertion that source evidence and manager authorization have been validated. It does not independently verify SMS/telephony signatures or employee identity.
 - Wallets can be frozen. Ledger corrections are compensating entries.
 - Agents may initiate authorized workflows but cannot call the service-role RPC or sign transactions.
+- On-chain admin, minter, and burner roles must be held by PeopleOS-controlled multisig/custody infrastructure. Employees must never receive a signing key or signer role.
 
 ## HRS lifecycle
 1. The trusted workflow authorizes an approved schedule, then one database transaction creates its hrs_allocations record, provisions or resolves the employee-attributed custodial wallet, and mints exactly its scheduled minutes.
@@ -27,13 +28,14 @@ The current foundation includes an internal PostgreSQL custody ledger, wallet pr
 3. Schedule changes release unused allocation without deleting history. Revised schedules should use a new approved allocation/version.
 4. Work beyond allocation becomes a verified-time exception, not discarded work or a negative wallet balance.
 5. Period close reconciles minted, consumed, released, corrected, and exception minutes.
+6. The future chain adapter must reconcile database allocations with on-chain mint/burn events using idempotency keys, transaction hashes, confirmation depth, and reorg handling. That adapter does not yet exist.
 
 ## Valuation boundary
 HRS's internal accounting function does not mathematically cap its independent token valuation. The system records quote currency, timestamp, source, evidence reference, and methodology version. Modeled values must be labeled as models; market values require verifiable market evidence. No price appreciation is promised or assumed.
 
-This foundation does not launch a public token, exchange, market, liquidity pool, redemption program, or price-support mechanism. External issuance, transferability, listing, liquidity, buybacks, or marketing of appreciation require a separately approved token-economics specification and specialist legal review. Do not manufacture volume, manipulate price, or misstate backing.
+The token contract does not implement a swap venue, liquidity pool, redemption program, buyback, or price-support mechanism. External issuance, listing, liquidity, buybacks, or marketing of appreciation require a separately approved token-economics specification and specialist legal review. Do not manufacture volume, manipulate price, or misstate backing.
 
 ## Earned value and payout boundary
 Verified work is valued independently using employee compensation terms and deterministic payroll calculations. On-demand payout is a separate workflow against eligible earned compensation, with earning references, payout reservations, provider idempotency, settlement confirmation, reversals, and reconciliation. HRS tokens and HRS market valuation are not employee wages and are not cashed out by employees.
 
-No live payout or external token operation is enabled by this foundation.
+No live payout, swap, external market, or production token operation is enabled by the current implementation.
