@@ -18,12 +18,14 @@ jobs:
         with:
           node-version: 22
           package-manager-cache: false
-      - name: Generate deterministic dependency lock
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Generate and remediate dependency lock
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm audit fix --package-lock-only --audit-level=moderate
       - name: Validate locked dependency tree
         run: |
           npm ci
-          npm audit --audit-level=high
+          npm audit --audit-level=moderate
           npm run typecheck
           npm run lint
           npm test
