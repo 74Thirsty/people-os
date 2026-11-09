@@ -5,23 +5,39 @@ on:
     branches: [main]
 permissions:
   contents: read
+concurrency:
+  group: peopleos-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - run: npm install
-      - uses: actions/upload-artifact@v4
-        with:
-          name: peopleos-generated-lockfile
-          path: package-lock.json
-          if-no-files-found: error
-          retention-days: 1
+          cache: npm
+      - run: npm ci
       - run: npm audit --audit-level=high
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
       - run: npm run build
+
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Start isolated local Supabase stack
+        run: npx --yes supabase@latest start --exclude studio,mailpit,edge-runtime,logflare,vector
+      - name: Apply all migrations to a clean PostgreSQL database
+        run: npx --yes supabase@latest db reset --local
+      - name: Lint the migrated database schema
+        run: npx --yes supabase@latest db lint --local --fail-on error
+      - name: Stop local Supabase stack
+        if: always()
+        run: npx --yes supabase@latest stop --no-backup
