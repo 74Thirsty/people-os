@@ -4,6 +4,7 @@
  */
 export type HrsEntryKind = "mint" | "consume" | "release" | "correction";
 export interface HrsWallet {
+  readonly custodyMode: "peopleos_custody";
   readonly walletId: string;
   readonly tenantId: string;
   readonly employeeId: string;
@@ -44,7 +45,7 @@ export function createCustodialHrsWallet(input: {
   for (const [name, value] of Object.entries(input)) if (!value.trim()) throw new Error(name + " is required");
   return Object.freeze({
     walletId: input.walletId, tenantId: input.tenantId, employeeId: input.employeeId,
-    custodian: "peopleos", employeeAccess: false, signingKeyReference: input.signingKeyReference
+    custodyMode: "peopleos_custody", custodian: "peopleos", employeeAccess: false, signingKeyReference: input.signingKeyReference
   });
 }
 export function getHrsWalletBalance(state: HrsWalletState): number {
