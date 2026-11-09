@@ -37,7 +37,7 @@ export async function PUT(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
   }
   const declaredLength = Number(request.headers.get("content-length") ?? "0");
-  if (Number.isFinite(declaredLength) && declaredLength > 1_100_000) {
+  if (Number.isFinite(declaredLength) && declaredLength > 10_100_000) {
     return NextResponse.json({ error: "Configuration payload is too large" }, { status: 413 });
   }
 
@@ -48,7 +48,7 @@ export async function PUT(request: Request, context: RouteContext) {
   let body: unknown;
   try {
     const raw = await request.text();
-    if (new TextEncoder().encode(raw).byteLength > 1_100_000) {
+    if (new TextEncoder().encode(raw).byteLength > 10_100_000) {
       return NextResponse.json({ error: "Configuration payload is too large" }, { status: 413 });
     }
     body = JSON.parse(raw);
