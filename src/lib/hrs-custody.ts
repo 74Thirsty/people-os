@@ -66,7 +66,7 @@ export function postHrsEntry(state: HrsWalletState, entry: HrsTokenEntry): HrsWa
 }
 export function valueHrs(units: number, quote: HrsValuationQuote): HrsValuation {
   assertUnits(units);
-  if (quote.priceMicrosPerHrs < 0n) throw new Error("Valuation quote cannot be negative");
+  if (quote.priceMicrosPerHrs < BigInt(0)) throw new Error("Valuation quote cannot be negative");
   if (!quote.quoteCurrency.trim() || !quote.methodologyVersion.trim()) throw new Error("Quote currency and methodology version are required");
   return Object.freeze({
     units, quoteCurrency: quote.quoteCurrency, valueMicros: BigInt(units) * quote.priceMicrosPerHrs,
