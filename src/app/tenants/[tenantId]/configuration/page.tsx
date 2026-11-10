@@ -24,7 +24,7 @@ export default async function CompanyConfigurationPage({params}: {params: Promis
       <div><div className="eyebrow">Company settings</div><h1>{tenant?.display_name ?? "Company"} configuration</h1></div>
       <Link className="text-link" href="/">Back to workspaces</Link>
     </div>
-    <p className="lead">One versioned JSON document defines this company's identity, contacts, people, permissions, policies, payroll settings, and agent configuration.</p>
+    <p className="lead">One versioned JSON document defines this company&apos;s identity, contacts, people, permissions, policies, payroll settings, and agent configuration.</p>
     <ConfigurationEditor tenantId={tenantId} revision={configuration.revision}
       initialConfiguration={configuration.configuration} canEdit={canEdit}/>
   </main>;
