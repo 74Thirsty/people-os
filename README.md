@@ -1,6 +1,6 @@
 # PeopleOS
 
-![Sheen Banner](https://github.com/74Thirsty/74Thirsty/blob/main/assets/gadget.svg)
+![Sheen Banner](https://github.com/74Thirsty/74Thirsty/blob/main/assets/peopleos_banner_logo.svg)
 
 ### The Operating System for Your Workforce.
 
