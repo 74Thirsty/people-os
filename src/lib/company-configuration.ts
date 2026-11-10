@@ -120,3 +120,33 @@ export const CompanyConfigurationSchema = z.object({
 }).strict();
 
 export type CompanyConfiguration = z.infer<typeof CompanyConfigurationSchema>;
+
+
+// Configuration documents may contain references to protected resources, never
+// credentials or regulated identifiers themselves. Apply recursively so nested
+// policy/provider/agent objects cannot smuggle secrets into the JSON document.
+const forbiddenConfigurationKey = /^(password|passwd|secret|clientsecret|apikey|apitoken|accesstoken|refreshtoken|authorization|privatekey|seedphrase|mnemonic|bankaccount(number)?|routing(number)?|taxid|ssn|socialsecurity(number)?)$/i;
+
+function findForbiddenConfigurationKeys(value: unknown, path = "$"): string[] {
+  if (Array.isArray(value)) {
+    return value.flatMap((item, index) => findForbiddenConfigurationKeys(item, `${path}[${index}]`));
+  }
+  if (value && typeof value === "object") {
+    return Object.entries(value).flatMap(([key, child]) => {
+      const normalized = key.replace(/[^a-z0-9]/gi, "");
+      const here = forbiddenConfigurationKey.test(normalized) ? [`${path}.${key}`] : [];
+      return [...here, ...findForbiddenConfigurationKeys(child, `${path}.${key}`)];
+    });
+  }
+  return [];
+}
+
+CompanyConfigurationSchema.superRefine((configuration, context) => {
+  for (const path of findForbiddenConfigurationKeys(configuration)) {
+    context.addIssue({
+      code: "custom",
+      path: path.replace(/^\$\.?/, "").split(/[.\[\]]+/).filter(Boolean),
+      message: "Store secrets and regulated identifiers in protected vaults, not company configuration."
+    });
+  }
+});
