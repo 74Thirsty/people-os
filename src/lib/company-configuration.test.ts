@@ -41,7 +41,18 @@ describe("CompanyConfigurationSchema", () => {
     expect(CompanyConfigurationSchema.safeParse(validConfiguration).success).toBe(true);
   });
 
-  it("rejects nested secret and regulated-identifier keys", () => {\n    const configuration = validConfiguration();\n    configuration.integrations.payroll = { api_key: "must-not-be-stored" };\n    expect(CompanyConfigurationSchema.safeParse(configuration).success).toBe(false);\n  });\n\n  it("rejects employee wallet access", () => {
+  it("rejects nested secret and regulated-identifier keys", () => {
+    const unsafe = {
+      ...validConfiguration,
+      integrations: {
+        ...validConfiguration.integrations,
+        payroll: { api_key: "must-not-be-stored" }
+      }
+    };
+    expect(CompanyConfigurationSchema.safeParse(unsafe).success).toBe(false);
+  });
+
+  it("rejects employee wallet access", () => {
     const unsafe = {
       ...validConfiguration,
       hrs: {...validConfiguration.hrs, employee_wallet_access:true}
