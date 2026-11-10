@@ -51,7 +51,7 @@ const roleSchema = z.object({
   permissions: z.array(z.string().trim().min(1).max(120)).max(200)
 }).strict();
 
-export const CompanyConfigurationSchema = z.object({
+const companyConfigurationBaseSchema = z.object({
   schema_version: z.literal("1.0.0"),
   tenant_id: z.string().uuid(),
   company: z.object({
@@ -119,7 +119,6 @@ export const CompanyConfigurationSchema = z.object({
   }).strict()
 }).strict();
 
-export type CompanyConfiguration = z.infer<typeof CompanyConfigurationSchema>;
 
 
 // Configuration documents may contain references to protected resources, never
@@ -141,7 +140,7 @@ function findForbiddenConfigurationKeys(value: unknown, path = "$"): string[] {
   return [];
 }
 
-CompanyConfigurationSchema.superRefine((configuration, context) => {
+export const CompanyConfigurationSchema = companyConfigurationBaseSchema.superRefine((configuration, context) => {
   for (const path of findForbiddenConfigurationKeys(configuration)) {
     context.addIssue({
       code: "custom",
@@ -150,3 +149,5 @@ CompanyConfigurationSchema.superRefine((configuration, context) => {
     });
   }
 });
+
+export type CompanyConfiguration = z.infer<typeof CompanyConfigurationSchema>;
