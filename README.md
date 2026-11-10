@@ -1,4 +1,7 @@
 # PeopleOS
+
+![Sheen Banner](https://github.com/74Thirsty/74Thirsty/blob/main/assets/gadget.svg)
+
 ### The Operating System for Your Workforce.
 
 PeopleOS is a phone-first, agent-driven workforce operating system. Employees interact through a company phone number using SMS, voice calls, and native smartphone dictation. Employers configure and oversee the system through a web command center.
