@@ -129,3 +129,19 @@ Validation after all changes: `typecheck` exit0, `lint` exit0, `env:sync` OK13/1
 - `diagnostics/DIR-009-user-guide-accuracy.md` — V-006 eleven-section walkthrough; 2 sections corrected (2026-11-10)
 - `diagnostics/DIR-010-validation-results.md` — V-007 all commands green (2026-11-10)
 - `diagnostics/DIR-011-final-operational-readiness.md` — acceptance report A–G (2026-11-10)
+
+
+### 2026-11-10 — provider-agnostic agent runtime foundation
+
+| File | Change | Notes |
+|---|---|---|
+| `src/lib/ai/types.ts` | Added provider-neutral message, tool, capability, and runtime contracts | No vendor SDK dependency |
+| `src/lib/ai/registry.ts` | Added runtime provider registry with register/replace/remove/list | Credentials are not stored in registry |
+| `src/lib/ai/providers/openai-compatible.ts` | Added OpenAI-compatible HTTP adapter | HTTPS required except localhost |
+| `src/lib/ai/providers/anthropic.ts` | Added native Anthropic Messages adapter | Server-side API key injection |
+| `src/lib/ai/providers/gemini.ts` | Added native Gemini generateContent adapter | Server-side API key injection |
+| `src/lib/ai/runtime.ts` | Added bounded tool-execution loop with authorization and approval gates | No provider failover; caller supplies tenant-scoped context and auth callbacks |
+| `src/lib/ai/runtime.test.ts` | Added registry, authorization, and approval tests | Not executed in this remote-only session |
+| `docs/agent-runtime.md` | Documented composition, extension, safety, and current boundaries | Explicitly not wired to Twilio or persistent sessions |
+
+Validation status: source was authored against the inspected TypeScript contracts, but local typecheck, lint, tests, and build were not executable through the connected GitHub interface. Do not report these checks as passing. This is a foundation PR, not a claim of end-to-end SMS agent operation.
