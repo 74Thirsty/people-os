@@ -1,0 +1,941 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://peopleos.local/schemas/company-config.schema.json",
+  "title": "PeopleOS Universal Company Configuration",
+  "description": "Self-contained tenant configuration. Secrets are referenced, never embedded.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "configVersion", "status", "identity", "microsoft",
+    "communications", "hr", "workforce", "agents", "payroll", "security"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0.0" },
+    "configVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "status": { "enum": ["draft", "requires_confirmation", "active", "suspended", "retired"] },
+    "identity": { "$ref": "#/definitions/identity" },
+    "microsoft": { "$ref": "#/definitions/microsoft" },
+    "communications": { "$ref": "#/definitions/communications" },
+    "hr": { "$ref": "#/definitions/hr" },
+    "workforce": { "$ref": "#/definitions/workforce" },
+    "agents": { "$ref": "#/definitions/agents" },
+    "payroll": { "$ref": "#/definitions/payroll" },
+    "security": { "$ref": "#/definitions/security" }
+  },
+  "definitions": {
+    "semver": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "roleId": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,48}$" },
+    "actionId": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,64}$" },
+    "permission": { "type": "string", "pattern": "^(\\*|[a-z][a-z0-9_.-]{1,80})$" },
+    "date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "sourcedStatus": { "enum": ["verified", "inferred", "requires_confirmation", "provisioning", "not_applicable"] },
+    "sourcedValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "status"],
+      "properties": {
+        "value": { "type": ["string", "null"] },
+        "status": { "$ref": "#/definitions/sourcedStatus" },
+        "envVar": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,80}$" },
+        "note": { "type": "string", "minLength": 1, "maxLength": 600 }
+      }
+    },
+    "secretReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "reference", "materialIncluded"],
+      "properties": {
+        "provider": { "enum": ["env", "vault", "kms", "managed_secret"] },
+        "reference": { "type": "string", "pattern": "^(env|vault|kms|managed):[A-Za-z0-9/_.:=@-]{3,220}$" },
+        "materialIncluded": { "const": false },
+        "rotationDays": { "type": "integer", "minimum": 1, "maximum": 3650 }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "source"],
+      "properties": {
+        "status": { "enum": ["verified", "inferred", "requires_confirmation", "example"] },
+        "source": { "type": "string", "minLength": 3, "maxLength": 500 },
+        "verifiedAt": { "type": ["string", "null"] },
+        "verifiedBy": { "type": ["string", "null"] }
+      }
+    },
+    "policyStatus": { "enum": ["proposed", "requires_confirmation", "approved", "active", "retired"] },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slug", "legalName", "operatingName", "description", "industry", "website", "contact", "addresses", "timezone", "jurisdictions", "registration", "verification"],
+      "properties": {
+        "slug": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,48}$" },
+        "legalName": { "type": "string", "minLength": 2, "maxLength": 200 },
+        "operatingName": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "description": { "type": "string", "minLength": 10, "maxLength": 1000 },
+        "industry": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "website": { "$ref": "#/definitions/sourcedValue" },
+        "contact": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["email", "telephone"],
+          "properties": {
+            "email": { "$ref": "#/definitions/sourcedValue" },
+            "telephone": { "$ref": "#/definitions/sourcedValue" }
+          }
+        },
+        "addresses": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "line1", "city", "region", "postalCode", "country", "status"],
+            "properties": {
+              "type": { "enum": ["registered", "mailing", "operating"] },
+              "line1": { "type": ["string", "null"] },
+              "line2": { "type": ["string", "null"] },
+              "city": { "type": ["string", "null"] },
+              "region": { "type": ["string", "null"] },
+              "postalCode": { "type": ["string", "null"] },
+              "country": { "type": "string", "pattern": "^[A-Z]{2}$" },
+              "status": { "enum": ["verified", "inferred", "requires_confirmation"] },
+              "note": { "type": "string", "maxLength": 500 }
+            }
+          }
+        },
+        "timezone": { "type": "string", "minLength": 3, "maxLength": 100 },
+        "jurisdictions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "name", "scope", "status"],
+            "properties": {
+              "code": { "type": "string", "pattern": "^[A-Z]{2}(-[A-Z0-9]{1,3})?$" },
+              "name": { "type": "string", "minLength": 2, "maxLength": 120 },
+              "scope": { "enum": ["country", "state", "local"] },
+              "employmentAuthorized": { "type": "boolean" },
+              "status": { "enum": ["verified", "inferred", "requires_confirmation"] }
+            }
+          }
+        },
+        "registration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["entityType", "registrationNumber", "taxIdentifier", "registeredAddressConfirmed", "status"],
+          "properties": {
+            "entityType": { "$ref": "#/definitions/sourcedValue" },
+            "registrationNumber": { "$ref": "#/definitions/sourcedValue" },
+            "taxIdentifier": { "$ref": "#/definitions/sourcedValue" },
+            "registeredAddressConfirmed": { "type": "boolean" },
+            "status": { "enum": ["verified", "inferred", "requires_confirmation"] },
+            "note": { "type": "string", "maxLength": 500 }
+          }
+        },
+        "verification": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fieldStatus", "lastReviewedAt"],
+          "properties": {
+            "fieldStatus": {
+              "type": "object",
+              "additionalProperties": { "enum": ["verified", "inferred", "requires_confirmation", "example"] }
+            },
+            "lastReviewedAt": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+    "microsoft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "provider", "connection", "services", "mailboxes", "graph", "health"],
+      "properties": {
+        "required": { "const": true },
+        "provider": { "const": "microsoft" },
+        "connection": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tenantId", "clientId", "clientSecret", "scopes"],
+          "properties": {
+            "tenantId": { "$ref": "#/definitions/sourcedValue" },
+            "clientId": { "$ref": "#/definitions/sourcedValue" },
+            "clientSecret": { "$ref": "#/definitions/secretReference" },
+            "certificateThumbprint": { "$ref": "#/definitions/sourcedValue" },
+            "scopes": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 3 } }
+          }
+        },
+        "services": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["m365", "entraId", "outlook", "graph", "teams", "sharedMailboxes", "employeeEmailProvisioning", "calendar", "authentication"],
+          "properties": {
+            "m365": { "$ref": "#/definitions/microsoftService" },
+            "entraId": { "$ref": "#/definitions/microsoftService" },
+            "outlook": { "$ref": "#/definitions/microsoftService" },
+            "graph": { "$ref": "#/definitions/microsoftService" },
+            "teams": { "$ref": "#/definitions/microsoftService" },
+            "sharedMailboxes": { "$ref": "#/definitions/microsoftService" },
+            "employeeEmailProvisioning": { "$ref": "#/definitions/microsoftService" },
+            "calendar": { "$ref": "#/definitions/microsoftService" },
+            "authentication": { "$ref": "#/definitions/microsoftService" }
+          }
+        },
+        "mailboxes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["shared", "employeeDomain", "provisioningMode", "defaultUsageLocation", "defaultLicenseSku"],
+          "properties": {
+            "shared": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["purpose", "address", "status"],
+                "properties": {
+                  "purpose": { "type": "string", "minLength": 3, "maxLength": 200 },
+                  "address": { "$ref": "#/definitions/sourcedValue" },
+                  "status": { "enum": ["verified", "requires_confirmation", "provisioning"] }
+                }
+              }
+            },
+            "employeeDomain": { "$ref": "#/definitions/sourcedValue" },
+            "provisioningMode": { "const": "graph" },
+            "defaultUsageLocation": { "type": "string", "pattern": "^[A-Z]{2}$" },
+            "defaultLicenseSku": { "$ref": "#/definitions/sourcedValue" }
+          }
+        },
+        "graph": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["baseUrl", "apiVersion"],
+          "properties": {
+            "baseUrl": { "const": "https://graph.microsoft.com/v1.0" },
+            "apiVersion": { "const": "v1.0" }
+          }
+        },
+        "health": { "$ref": "#/definitions/integrationHealth" }
+      }
+    },
+    "microsoftService": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "purpose", "verifiedAt"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "purpose": { "type": "string", "minLength": 3, "maxLength": 300 },
+        "verifiedAt": { "type": ["string", "null"] }
+      }
+    },
+    "integrationHealth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "lastCheckedAt", "evidence"],
+      "properties": {
+        "status": { "enum": ["not_configured", "configured", "provisioned", "verified", "operational", "error"] },
+        "lastCheckedAt": { "type": ["string", "null"] },
+        "evidence": { "type": ["string", "null"], "maxLength": 1000 }
+      }
+    },
+    "communications": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "required", "capabilities", "account", "phoneNumber", "consent", "notifications", "webhooks", "health"],
+      "properties": {
+        "provider": { "enum": ["twilio"] },
+        "required": { "const": true },
+        "capabilities": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sms", "mms", "voice"],
+          "properties": {
+            "sms": { "const": true },
+            "mms": { "const": true },
+            "voice": { "const": true }
+          }
+        },
+        "account": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["accountSid", "authToken", "messagingServiceSid"],
+          "properties": {
+            "accountSid": { "$ref": "#/definitions/sourcedValue" },
+            "authToken": { "$ref": "#/definitions/secretReference" },
+            "messagingServiceSid": { "$ref": "#/definitions/sourcedValue" }
+          }
+        },
+        "phoneNumber": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["e164", "countryCode", "purpose", "verifiedCapabilities", "provisioningStatus"],
+          "properties": {
+            "e164": { "$ref": "#/definitions/sourcedValue" },
+            "countryCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
+            "purpose": { "type": "string", "minLength": 3, "maxLength": 300 },
+            "verifiedCapabilities": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["sms", "mms", "voice"],
+              "properties": {
+                "sms": { "type": "boolean" },
+                "mms": { "type": "boolean" },
+                "voice": { "type": "boolean" }
+              }
+            },
+            "provisioningStatus": { "enum": ["not_purchased", "requested", "provisioned", "verified", "operational", "blocked"] }
+          }
+        },
+        "consent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["optInKeywords", "optOutKeywords", "helpKeywords", "confirmationMessage", "optOutAcknowledgement", "helpResponse", "retentionDays", "sourceUrl"],
+          "properties": {
+            "optInKeywords": { "type": "array", "items": { "type": "string", "minLength": 2, "maxLength": 30 } },
+            "optOutKeywords": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 2, "maxLength": 30 } },
+            "helpKeywords": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 2, "maxLength": 30 } },
+            "confirmationMessage": { "type": "string", "minLength": 3, "maxLength": 300 },
+            "optOutAcknowledgement": { "type": "string", "minLength": 3, "maxLength": 300 },
+            "helpResponse": { "type": "string", "minLength": 3, "maxLength": 300 },
+            "retentionDays": { "type": "integer", "minimum": 1, "maximum": 3650 },
+            "sourceUrl": { "type": ["string", "null"] }
+          }
+        },
+        "notifications": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["shiftReminder", "attendanceEscalation", "leaveDecision", "payrollApproval", "urgentSafety", "scheduleChange"],
+          "properties": {
+            "shiftReminder": { "$ref": "#/definitions/notificationRule" },
+            "attendanceEscalation": { "$ref": "#/definitions/notificationRule" },
+            "leaveDecision": { "$ref": "#/definitions/notificationRule" },
+            "payrollApproval": { "$ref": "#/definitions/notificationRule" },
+            "urgentSafety": { "$ref": "#/definitions/notificationRule" },
+            "scheduleChange": { "$ref": "#/definitions/notificationRule" }
+          }
+        },
+        "webhooks": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["inboundPath", "statusCallbackPath", "signatureValidation"],
+          "properties": {
+            "inboundPath": { "const": "/api/webhooks/twilio" },
+            "statusCallbackPath": { "const": "/api/webhooks/twilio/status" },
+            "signatureValidation": { "const": "twilio_signature_v1" }
+          }
+        },
+        "health": { "$ref": "#/definitions/integrationHealth" }
+      }
+    },
+    "notificationRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["channels", "recipients", "requiresConsent"],
+      "properties": {
+        "channels": { "type": "array", "minItems": 1, "items": { "enum": ["sms", "mms", "voice", "email", "teams"] } },
+        "recipients": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 2, "maxLength": 80 } },
+        "requiresConsent": { "const": true }
+      }
+    },
+    "hr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["employmentClassifications", "policies", "approvals", "timekeeping", "leave", "holidays", "onboarding", "offboarding", "performance", "conduct", "safety", "privacy"],
+      "properties": {
+        "employmentClassifications": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "description", "overtimeEligible", "benefitsEligible", "status", "source"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,48}$" },
+              "name": { "type": "string", "minLength": 2, "maxLength": 100 },
+              "description": { "type": "string", "minLength": 5, "maxLength": 500 },
+              "overtimeEligible": { "type": "boolean" },
+              "benefitsEligible": { "type": "boolean" },
+              "status": { "$ref": "#/definitions/policyStatus" },
+              "source": { "$ref": "#/definitions/verification" }
+            }
+          }
+        },
+        "policies": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/policy" }
+        },
+        "approvals": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["matrix"],
+          "properties": {
+            "matrix": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/approvalRule" } }
+          }
+        },
+        "timekeeping": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["workweek", "payPeriods", "breaks", "overtime", "grace", "rounding", "missedPunch"],
+          "properties": {
+            "workweek": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["startDay", "timezone", "policyId"],
+              "properties": {
+                "startDay": { "enum": ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] },
+                "timezone": { "type": "string", "minLength": 3 },
+                "policyId": { "type": "string" }
+              }
+            },
+            "payPeriods": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["frequency", "anchorDate", "timezone", "cutoffDaysBeforeEnd", "approvalAction", "policyId"],
+              "properties": {
+                "frequency": { "enum": ["weekly", "biweekly", "semimonthly", "monthly"] },
+                "anchorDate": { "$ref": "#/definitions/date" },
+                "timezone": { "type": "string", "minLength": 3 },
+                "cutoffDaysBeforeEnd": { "type": "integer", "minimum": 0, "maximum": 14 },
+                "approvalAction": { "$ref": "#/definitions/actionId" },
+                "policyId": { "type": "string" }
+              }
+            },
+            "breaks": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["unpaidMeal", "rest"],
+              "properties": {
+                "unpaidMeal": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["triggerAfterMinutes", "minimumMinutes", "maximumMinutes", "autoDeduct", "policyId"],
+                  "properties": {
+                    "triggerAfterMinutes": { "type": "integer", "minimum": 0, "maximum": 1440 },
+                    "minimumMinutes": { "type": "integer", "minimum": 0, "maximum": 240 },
+                    "maximumMinutes": { "type": "integer", "minimum": 0, "maximum": 240 },
+                    "autoDeduct": { "type": "boolean" },
+                    "policyId": { "type": "string" }
+                  }
+                },
+                "rest": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["name", "paid", "minutes", "perHoursWorked", "policyId"],
+                    "properties": {
+                      "name": { "type": "string", "minLength": 2, "maxLength": 100 },
+                      "paid": { "type": "boolean" },
+                      "minutes": { "type": "integer", "minimum": 0, "maximum": 120 },
+                      "perHoursWorked": { "type": "number", "minimum": 0, "maximum": 24 },
+                      "policyId": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "overtime": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["weeklyThresholdMinutes", "dailyThresholdMinutes", "multiplier", "treatment", "policyId"],
+              "properties": {
+                "weeklyThresholdMinutes": { "type": "integer", "minimum": 1, "maximum": 10080 },
+                "dailyThresholdMinutes": { "type": ["integer", "null"], "minimum": 1, "maximum": 1440 },
+                "multiplier": { "type": "number", "minimum": 1, "maximum": 3 },
+                "treatment": { "enum": ["weekly", "daily_and_weekly", "none"] },
+                "policyId": { "type": "string" }
+              }
+            },
+            "grace": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["clockInMinutes", "clockOutMinutes", "policyId"],
+              "properties": {
+                "clockInMinutes": { "type": "integer", "minimum": 0, "maximum": 60 },
+                "clockOutMinutes": { "type": "integer", "minimum": 0, "maximum": 60 },
+                "policyId": { "type": "string" }
+              }
+            },
+            "rounding": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["mode", "incrementMinutes", "policyId"],
+              "properties": {
+                "mode": { "enum": ["none", "nearest_quarter_hour", "nearest_tenth_hour"] },
+                "incrementMinutes": { "type": "integer", "minimum": 1, "maximum": 60 },
+                "policyId": { "type": "string" }
+              }
+            },
+            "missedPunch": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["correctionRequiresApproval", "approvalAction", "maxCorrectionDays", "policyId"],
+              "properties": {
+                "correctionRequiresApproval": { "type": "boolean" },
+                "approvalAction": { "$ref": "#/definitions/actionId" },
+                "maxCorrectionDays": { "type": "integer", "minimum": 0, "maximum": 365 },
+                "policyId": { "type": "string" }
+              }
+            }
+          }
+        },
+        "leave": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["types", "requestAdvanceDays", "maxConsecutiveDays"],
+          "properties": {
+            "requestAdvanceDays": { "type": "integer", "minimum": 0, "maximum": 365 },
+            "maxConsecutiveDays": { "type": "integer", "minimum": 1, "maximum": 365 },
+            "types": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "name", "paid", "accrual", "requiresApproval", "approvalAction", "policyId", "status"],
+                "properties": {
+                  "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,48}$" },
+                  "name": { "type": "string", "minLength": 2, "maxLength": 100 },
+                  "paid": { "type": "boolean" },
+                  "accrual": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["annualAllowanceMinutes", "accrualMethod", "accrualMinutesPerPeriod"],
+                    "properties": {
+                      "annualAllowanceMinutes": { "type": ["integer", "null"], "minimum": 0 },
+                      "accrualMethod": { "enum": ["none", "per_pay_period", "monthly", "annual_grant"] },
+                      "accrualMinutesPerPeriod": { "type": ["integer", "null"], "minimum": 0 }
+                    }
+                  },
+                  "requiresApproval": { "type": "boolean" },
+                  "approvalAction": { "$ref": "#/definitions/actionId" },
+                  "policyId": { "type": "string" },
+                  "status": { "$ref": "#/definitions/policyStatus" }
+                }
+              }
+            }
+          }
+        },
+        "holidays": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["date", "name", "paid", "jurisdiction", "status", "policyId"],
+            "properties": {
+              "date": { "$ref": "#/definitions/date" },
+              "name": { "type": "string", "minLength": 2, "maxLength": 100 },
+              "paid": { "type": "boolean" },
+              "jurisdiction": { "type": "string", "minLength": 2, "maxLength": 20 },
+              "status": { "$ref": "#/definitions/policyStatus" },
+              "policyId": { "type": "string" }
+            }
+          }
+        },
+        "onboarding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tasks", "requiredDocuments", "probationDays", "policyId"],
+          "properties": {
+            "tasks": { "type": "array", "items": { "type": "string", "minLength": 3 } },
+            "requiredDocuments": { "type": "array", "items": { "type": "string", "minLength": 3 } },
+            "probationDays": { "type": ["integer", "null"], "minimum": 0, "maximum": 730 },
+            "policyId": { "type": "string" }
+          }
+        },
+        "offboarding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tasks", "returnAssets", "revokeAccessWithinHours", "finalPayPolicyId", "policyId"],
+          "properties": {
+            "tasks": { "type": "array", "items": { "type": "string", "minLength": 3 } },
+            "returnAssets": { "type": "array", "items": { "type": "string", "minLength": 2 } },
+            "revokeAccessWithinHours": { "type": "integer", "minimum": 0, "maximum": 168 },
+            "finalPayPolicyId": { "type": "string" },
+            "policyId": { "type": "string" }
+          }
+        },
+        "performance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reviewFrequency", "probationReviewDays", "policyId"],
+          "properties": {
+            "reviewFrequency": { "enum": ["monthly", "quarterly", "annual", "none"] },
+            "probationReviewDays": { "type": ["integer", "null"], "minimum": 0, "maximum": 730 },
+            "policyId": { "type": "string" }
+          }
+        },
+        "conduct": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["complaintChannels", "investigationRequired", "policyIds"],
+          "properties": {
+            "complaintChannels": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 2 } },
+            "investigationRequired": { "type": "boolean" },
+            "policyIds": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+          }
+        },
+        "safety": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["emergencyContact", "reportingChannels", "incidentReportRequired", "policyId"],
+          "properties": {
+            "emergencyContact": { "$ref": "#/definitions/sourcedValue" },
+            "reportingChannels": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 2 } },
+            "incidentReportRequired": { "type": "boolean" },
+            "policyId": { "type": "string" }
+          }
+        },
+        "privacy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["documentRetentionDays", "payrollRetentionYears", "employeeRecordRetentionYears", "policyId"],
+          "properties": {
+            "documentRetentionDays": { "type": "integer", "minimum": 1, "maximum": 36500 },
+            "payrollRetentionYears": { "type": "integer", "minimum": 1, "maximum": 100 },
+            "employeeRecordRetentionYears": { "type": "integer", "minimum": 1, "maximum": 100 },
+            "policyId": { "type": "string" }
+          }
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "category", "description", "applicability", "rules", "approvals", "responsibleRoles", "effectiveDate", "jurisdiction", "enforcement", "exceptions", "escalation", "status", "source"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Z][A-Z0-9-]{2,30}$" },
+        "name": { "type": "string", "minLength": 3, "maxLength": 160 },
+        "category": { "enum": ["employment", "hiring", "records", "scheduling", "attendance", "breaks", "overtime", "leave", "holidays", "payroll", "compensation", "expenses", "performance", "discipline", "conduct", "equal_opportunity", "safety", "termination", "privacy", "escalation"] },
+        "description": { "type": "string", "minLength": 10, "maxLength": 1200 },
+        "applicability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["employmentTypes", "jurisdictions"],
+          "properties": {
+            "employmentTypes": { "type": "array", "items": { "type": "string" } },
+            "jurisdictions": { "type": "array", "items": { "type": "string" } },
+            "locations": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "rules": {
+          "type": "object",
+          "additionalProperties": {
+            "type": ["string", "number", "boolean", "array", "null"],
+            "items": { "type": ["string", "number", "boolean"] }
+          }
+        },
+        "approvals": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["requiredRoles", "minimumApprovals", "escalateTo"],
+          "properties": {
+            "requiredRoles": { "type": "array", "items": { "$ref": "#/definitions/roleId" } },
+            "minimumApprovals": { "type": "integer", "minimum": 1, "maximum": 10 },
+            "escalateTo": { "type": ["string", "null"] }
+          }
+        },
+        "responsibleRoles": { "type": "array", "items": { "$ref": "#/definitions/roleId" } },
+        "effectiveDate": { "$ref": "#/definitions/date" },
+        "jurisdiction": { "type": "string", "minLength": 2, "maxLength": 20 },
+        "enforcement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "behavior"],
+          "properties": {
+            "mode": { "enum": ["auto", "require_approval", "block", "advisory"] },
+            "behavior": { "type": "string", "minLength": 5, "maxLength": 600 }
+          }
+        },
+        "exceptions": { "type": "array", "items": { "type": "string", "maxLength": 400 } },
+        "escalation": { "type": "array", "items": { "type": "string", "maxLength": 400 } },
+        "status": { "$ref": "#/definitions/policyStatus" },
+        "source": { "$ref": "#/definitions/verification" }
+      }
+    },
+    "approvalRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "requiredRoles", "minimumApprovals", "amountThreshold", "escalateTo"],
+      "properties": {
+        "action": { "$ref": "#/definitions/actionId" },
+        "requiredRoles": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/roleId" } },
+        "minimumApprovals": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "amountThreshold": { "type": ["number", "null"], "minimum": 0 },
+        "escalateTo": { "type": ["string", "null"] },
+        "notes": { "type": "string", "maxLength": 400 }
+      }
+    },
+    "workforce": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["roles", "approvalHierarchy", "delegation", "reporting"],
+      "properties": {
+        "roles": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/workforceRole" }
+        },
+        "approvalHierarchy": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["level", "roleId", "canApproveActions", "maxAmount"],
+            "properties": {
+              "level": { "type": "integer", "minimum": 1, "maximum": 20 },
+              "roleId": { "$ref": "#/definitions/roleId" },
+              "canApproveActions": { "type": "array", "items": { "$ref": "#/definitions/actionId" } },
+              "maxAmount": { "type": ["number", "null"], "minimum": 0 }
+            }
+          }
+        },
+        "delegation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allowed", "maxDays", "requiresApprovalBy"],
+          "properties": {
+            "allowed": { "type": "boolean" },
+            "maxDays": { "type": "integer", "minimum": 0, "maximum": 365 },
+            "requiresApprovalBy": { "$ref": "#/definitions/roleId" }
+          }
+        },
+        "reporting": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["defaultManagerRoleId", "requireManagerAssignment", "crossTenantReportingAllowed"],
+          "properties": {
+            "defaultManagerRoleId": { "$ref": "#/definitions/roleId" },
+            "requireManagerAssignment": { "type": "boolean" },
+            "crossTenantReportingAllowed": { "const": false }
+          }
+        }
+      }
+    },
+    "workforceRole": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "membershipRole", "permissions", "dataAccess", "escalationTo"],
+      "properties": {
+        "id": { "$ref": "#/definitions/roleId" },
+        "name": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "membershipRole": { "enum": ["owner", "administrator", "manager", "auditor", null] },
+        "permissions": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/definitions/permission" } },
+        "dataAccess": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["employeeRecords", "compensation", "documents", "messages"],
+          "properties": {
+            "employeeRecords": { "enum": ["all", "team", "self", "none"] },
+            "compensation": { "enum": ["all", "team", "self", "none"] },
+            "documents": { "enum": ["all", "team", "self", "none"] },
+            "messages": { "enum": ["all", "team", "self", "none"] }
+          }
+        },
+        "escalationTo": { "type": ["string", "null"] }
+      }
+    },
+    "agents": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime", "definitions"],
+      "properties": {
+        "runtime": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["instructionResolution", "auditAllActions", "crossTenantContext", "policyResolution"],
+          "properties": {
+            "instructionResolution": { "const": "active_tenant_configuration" },
+            "auditAllActions": { "const": true },
+            "crossTenantContext": { "const": "deny" },
+            "policyResolution": { "const": "active_tenant_configuration" }
+          }
+        },
+        "definitions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "enabled", "purpose", "instructions", "permittedActions", "prohibitedActions", "escalationConditions", "approvalRequiredFor", "channels", "workflowAccess", "policyAccess", "audit"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z][a-z0-9_-]{1,48}$" },
+              "name": { "type": "string", "minLength": 2, "maxLength": 80 },
+              "enabled": { "type": "boolean" },
+              "purpose": { "type": "string", "minLength": 10, "maxLength": 500 },
+              "instructions": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 5, "maxLength": 800 } },
+              "permittedActions": { "type": "array", "items": { "$ref": "#/definitions/actionId" } },
+              "prohibitedActions": { "type": "array", "items": { "type": "string", "minLength": 2, "maxLength": 120 } },
+              "escalationConditions": { "type": "array", "items": { "type": "string", "minLength": 3, "maxLength": 400 } },
+              "approvalRequiredFor": { "type": "array", "items": { "$ref": "#/definitions/actionId" } },
+              "channels": { "type": "array", "minItems": 1, "items": { "enum": ["sms", "mms", "voice", "email", "teams", "web"] } },
+              "workflowAccess": { "type": "array", "items": { "type": "string", "minLength": 2, "maxLength": 80 } },
+              "policyAccess": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1, "maxLength": 80 } },
+              "audit": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["logReads", "logActions", "retentionDays"],
+                "properties": {
+                  "logReads": { "type": "boolean" },
+                  "logActions": { "type": "boolean" },
+                  "retentionDays": { "type": "integer", "minimum": 1, "maximum": 36500 }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "payroll": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "currency", "payPeriods", "compensation", "timeTokens", "expenses"],
+      "properties": {
+        "provider": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "credentials", "status"],
+          "properties": {
+            "name": { "$ref": "#/definitions/sourcedValue" },
+            "credentials": { "$ref": "#/definitions/secretReference" },
+            "status": { "enum": ["not_configured", "configured", "provisioned", "verified", "operational"] }
+          }
+        },
+        "currency": { "$ref": "#/definitions/sourcedValue" },
+        "payPeriods": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["frequency", "anchorDate", "timezone", "approvalAction", "releaseRequiresDualApproval", "cutoffDaysBeforeEnd"],
+          "properties": {
+            "frequency": { "enum": ["weekly", "biweekly", "semimonthly", "monthly"] },
+            "anchorDate": { "$ref": "#/definitions/date" },
+            "timezone": { "type": "string", "minLength": 3 },
+            "approvalAction": { "$ref": "#/definitions/actionId" },
+            "releaseRequiresDualApproval": { "type": "boolean" },
+            "cutoffDaysBeforeEnd": { "type": "integer", "minimum": 0, "maximum": 14 }
+          }
+        },
+        "compensation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["payRateChangeRequiresApproval", "bankAccountChangeRequiresApproval", "effectiveDateRule", "minimumWageReviewStatus"],
+          "properties": {
+            "payRateChangeRequiresApproval": { "type": "boolean" },
+            "bankAccountChangeRequiresApproval": { "type": "boolean" },
+            "effectiveDateRule": { "type": "string", "minLength": 5, "maxLength": 400 },
+            "minimumWageReviewStatus": { "enum": ["verified", "requires_confirmation", "not_reviewed"] }
+          }
+        },
+        "timeTokens": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["model", "mintRequiresApprovedSchedule", "consumeRequiresVerifiedClockEvent", "overtimeTreatment", "correctionsRequireApproval", "maxRetroactiveCorrectionDays", "reconcileAtPeriodClose", "cashOutEnabled", "isWages"],
+          "properties": {
+            "model": { "const": "hrs_minutes" },
+            "mintRequiresApprovedSchedule": { "const": true },
+            "consumeRequiresVerifiedClockEvent": { "const": true },
+            "overtimeTreatment": { "enum": ["scheduled_capacity_only", "separate_overtime_allocation", "not_modeled"] },
+            "correctionsRequireApproval": { "const": true },
+            "maxRetroactiveCorrectionDays": { "type": "integer", "minimum": 0, "maximum": 365 },
+            "reconcileAtPeriodClose": { "const": true },
+            "cashOutEnabled": { "const": false },
+            "isWages": { "const": false }
+          }
+        },
+        "expenses": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reimbursementRequiresApproval", "approvalAction", "receiptRequiredOverAmount", "submissionWindowDays", "policyId"],
+          "properties": {
+            "reimbursementRequiresApproval": { "type": "boolean" },
+            "approvalAction": { "$ref": "#/definitions/actionId" },
+            "receiptRequiredOverAmount": { "type": "number", "minimum": 0 },
+            "submissionWindowDays": { "type": "integer", "minimum": 1, "maximum": 365 },
+            "policyId": { "type": "string" }
+          }
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tenantIsolation", "secretManagement", "sensitiveFields", "audit", "configurationManagement", "retention"],
+      "properties": {
+        "tenantIsolation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enforcedBy", "crossTenantAccess", "agentContextScope"],
+          "properties": {
+            "enforcedBy": { "type": "array", "minItems": 1, "items": { "enum": ["row_level_security", "service_boundary", "application_scope"] } },
+            "crossTenantAccess": { "const": "deny" },
+            "agentContextScope": { "const": "tenant" }
+          }
+        },
+        "secretManagement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider", "referencesOnly", "rotationDays", "prohibitedInRepository"],
+          "properties": {
+            "provider": { "enum": ["env", "managed_secret_store"] },
+            "referencesOnly": { "const": true },
+            "rotationDays": { "type": "integer", "minimum": 1, "maximum": 3650 },
+            "prohibitedInRepository": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "sensitiveFields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "classification", "accessRoles", "encryption", "retentionDays"],
+            "properties": {
+              "path": { "type": "string", "minLength": 3 },
+              "classification": { "enum": ["internal", "confidential", "restricted"] },
+              "accessRoles": { "type": "array", "items": { "$ref": "#/definitions/roleId" } },
+              "encryption": { "enum": ["at_rest_required", "field_level_required"] },
+              "retentionDays": { "type": "integer", "minimum": 1, "maximum": 36500 }
+            }
+          }
+        },
+        "audit": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["requiredEvents", "retentionDays", "immutable"],
+          "properties": {
+            "requiredEvents": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 3 } },
+            "retentionDays": { "type": "integer", "minimum": 1, "maximum": 36500 },
+            "immutable": { "const": true }
+          }
+        },
+        "configurationManagement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["versioning", "changeRequiresApproval", "approvalRoles", "activationRequires"],
+          "properties": {
+            "versioning": { "const": "immutable_snapshots" },
+            "changeRequiresApproval": { "const": true },
+            "approvalRoles": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/roleId" } },
+            "activationRequires": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 3 } }
+          }
+        },
+        "retention": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["employeeRecordsDays", "payrollRecordsDays", "messagesDays", "auditDays", "policyVersionDays"],
+          "properties": {
+            "employeeRecordsDays": { "type": "integer", "minimum": 1, "maximum": 36500 },
+            "payrollRecordsDays": { "type": "integer", "minimum": 1, "maximum": 36500 },
+            "messagesDays": { "type": "integer", "minimum": 1, "maximum": 36500 },
+            "auditDays": { "type": "integer", "minimum": 1, "maximum": 36500 },
+            "policyVersionDays": { "type": "integer", "minimum": 1, "maximum": 36500 }
+          }
+        }
+      }
+    }
+  }
+}

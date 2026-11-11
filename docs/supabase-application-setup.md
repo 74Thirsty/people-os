@@ -19,8 +19,9 @@ The migration order is:
 3. `202611090003_custodial_hrs.sql`
 4. `202611090004_hrs_atomic_posting.sql`
 5. `202611090005_supabase_application_setup.sql`
+6. `202611100001_company_configuration.sql`
 
-For a new Supabase project, link the project with the Supabase CLI and apply migrations after reviewing the target project. CI also starts an isolated local Supabase stack, applies all five migrations from a clean database, and runs database lint before changes are accepted. Do not apply these foundation migrations to an existing populated database without a schema and data compatibility review.
+For a new Supabase project, link the project with the Supabase CLI and apply migrations after reviewing the target project. CI also starts an isolated local Supabase stack, applies all six migrations from a clean database, and runs database lint before changes are accepted. Do not apply these foundation migrations to an existing populated database without a schema and data compatibility review.
 
 ```sh
 supabase login
@@ -39,6 +40,14 @@ Configure the Supabase Auth Site URL and redirect allow-list for the deployed Pe
 5. The tenant creation is recorded in `audit_events`.
 
 Tenant membership and employee reads remain protected by RLS. HRS wallet, token-ledger, and valuation tables remain unavailable to anon/authenticated clients. HRS posting RPCs remain service-role-only.
+
+## Company configuration and integrations
+
+Tenant configuration is stored as immutable snapshots in `tenant_config_versions`. Exactly one version may be active per tenant. Publication is performed only through the service-role-only `publish_tenant_config_version` function, which supersedes the prior active version, writes the new snapshot, and records an audit event in one transaction.
+
+`tenant_integrations` stores provider state and credential **references** only. `tenant_messaging_contacts` stores per-tenant SMS consent, and `tenant_messages` stores inbound/delivery records. A provisioned phone number is unique across tenants so inbound messages cannot be routed across company boundaries.
+
+Apply migration 6 before using `/company/<tenant-id>`, `/api/company/*`, `/api/platform/onboarding`, or the Twilio webhooks. Configure `PEOPLEOS_PLATFORM_ADMIN_EMAILS`, `MICROSOFT_*`, `TWILIO_*`, and `TWILIO_WEBHOOK_BASE_URL` in the deployment environment. See [company-configuration.md](company-configuration.md).
 
 ## Storage
 

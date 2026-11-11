@@ -1,0 +1,1301 @@
+{
+  "$schema": "../../schemas/company-config.schema.json",
+  "schemaVersion": "1.0.0",
+  "configVersion": "1.0.0",
+  "status": "requires_confirmation",
+  "identity": {
+    "slug": "spin-marketing",
+    "legalName": "Spin Marketing",
+    "operatingName": "Spin Marketing",
+    "description": "Marketing services reference tenant for the PeopleOS universal company configuration implementation. Legal identity, registration, and operating details remain subject to Spin Marketing confirmation.",
+    "industry": "Marketing and advertising",
+    "website": {
+      "value": null,
+      "status": "requires_confirmation",
+      "note": "No repository evidence of a public website. Do not infer or fabricate a URL."
+    },
+    "contact": {
+      "email": {
+        "value": null,
+        "status": "requires_confirmation",
+        "note": "Company contact email must be supplied and verified during provisioning."
+      },
+      "telephone": {
+        "value": null,
+        "status": "requires_confirmation",
+        "note": "The business telephone is provisioned separately as the operational SMS/MMS/voice number."
+      }
+    },
+    "addresses": [],
+    "timezone": "America/Chicago",
+    "jurisdictions": [
+      {
+        "code": "US",
+        "name": "United States",
+        "scope": "country",
+        "employmentAuthorized": true,
+        "status": "requires_confirmation"
+      }
+    ],
+    "registration": {
+      "entityType": {
+        "value": null,
+        "status": "requires_confirmation"
+      },
+      "registrationNumber": {
+        "value": null,
+        "status": "requires_confirmation"
+      },
+      "taxIdentifier": {
+        "value": null,
+        "status": "requires_confirmation",
+        "note": "Never store a tax identifier in this repository configuration. Resolve it from the secret store at runtime."
+      },
+      "registeredAddressConfirmed": false,
+      "status": "requires_confirmation",
+      "note": "Entity type, registration number, registered address, and state-level jurisdiction require Spin Marketing confirmation."
+    },
+    "verification": {
+      "fieldStatus": {
+        "legalName": "requires_confirmation",
+        "operatingName": "inferred",
+        "description": "inferred",
+        "industry": "inferred",
+        "website": "requires_confirmation",
+        "contact": "requires_confirmation",
+        "addresses": "requires_confirmation",
+        "timezone": "inferred",
+        "jurisdictions": "requires_confirmation",
+        "registration": "requires_confirmation"
+      },
+      "lastReviewedAt": null
+    }
+  },
+  "microsoft": {
+    "required": true,
+    "provider": "microsoft",
+    "connection": {
+      "tenantId": {
+        "value": null,
+        "status": "requires_confirmation",
+        "envVar": "MICROSOFT_TENANT_ID",
+        "note": "Microsoft Entra tenant ID must be supplied by Spin Marketing."
+      },
+      "clientId": {
+        "value": null,
+        "status": "requires_confirmation",
+        "envVar": "MICROSOFT_CLIENT_ID",
+        "note": "App registration client ID must be supplied by Spin Marketing."
+      },
+      "clientSecret": {
+        "provider": "env",
+        "reference": "env:MICROSOFT_CLIENT_SECRET",
+        "materialIncluded": false,
+        "rotationDays": 180
+      },
+      "scopes": [
+        "https://graph.microsoft.com/.default"
+      ]
+    },
+    "services": {
+      "m365": {
+        "enabled": true,
+        "purpose": "Microsoft 365 business productivity environment.",
+        "verifiedAt": null
+      },
+      "entraId": {
+        "enabled": true,
+        "purpose": "Workforce identity and access management.",
+        "verifiedAt": null
+      },
+      "outlook": {
+        "enabled": true,
+        "purpose": "Employee and shared HR mailbox email.",
+        "verifiedAt": null
+      },
+      "graph": {
+        "enabled": true,
+        "purpose": "Application data and provisioning operations.",
+        "verifiedAt": null
+      },
+      "teams": {
+        "enabled": true,
+        "purpose": "HR escalations and internal coordination.",
+        "verifiedAt": null
+      },
+      "sharedMailboxes": {
+        "enabled": true,
+        "purpose": "Shared HR operations mailbox.",
+        "verifiedAt": null
+      },
+      "employeeEmailProvisioning": {
+        "enabled": true,
+        "purpose": "Create employee mailboxes through Microsoft Graph after approval.",
+        "verifiedAt": null
+      },
+      "calendar": {
+        "enabled": true,
+        "purpose": "Interview, onboarding, and leave calendar operations.",
+        "verifiedAt": null
+      },
+      "authentication": {
+        "enabled": true,
+        "purpose": "Microsoft Entra ID workforce authentication.",
+        "verifiedAt": null
+      }
+    },
+    "mailboxes": {
+      "shared": [
+        {
+          "purpose": "HR operations shared mailbox",
+          "address": {
+            "value": null,
+            "status": "requires_confirmation",
+            "note": "No email address is fabricated. Provision a real mailbox after tenant confirmation."
+          },
+          "status": "requires_confirmation"
+        }
+      ],
+      "employeeDomain": {
+        "value": null,
+        "status": "requires_confirmation",
+        "note": "Employee mailbox domain must be confirmed from the Microsoft 365 tenant."
+      },
+      "provisioningMode": "graph",
+      "defaultUsageLocation": "US",
+      "defaultLicenseSku": {
+        "value": null,
+        "status": "requires_confirmation",
+        "note": "License SKU must be confirmed from the customer's Microsoft agreement."
+      }
+    },
+    "graph": {
+      "baseUrl": "https://graph.microsoft.com/v1.0",
+      "apiVersion": "v1.0"
+    },
+    "health": {
+      "status": "not_configured",
+      "lastCheckedAt": null,
+      "evidence": null
+    }
+  },
+  "communications": {
+    "provider": "twilio",
+    "required": true,
+    "capabilities": {
+      "sms": true,
+      "mms": true,
+      "voice": true
+    },
+    "account": {
+      "accountSid": {
+        "value": null,
+        "status": "requires_confirmation",
+        "envVar": "TWILIO_ACCOUNT_SID"
+      },
+      "authToken": {
+        "provider": "env",
+        "reference": "env:TWILIO_AUTH_TOKEN",
+        "materialIncluded": false,
+        "rotationDays": 180
+      },
+      "messagingServiceSid": {
+        "value": null,
+        "status": "requires_confirmation",
+        "envVar": "TWILIO_MESSAGING_SERVICE_SID",
+        "note": "Optional messaging service SID. A verified sender number is mandatory."
+      }
+    },
+    "phoneNumber": {
+      "e164": {
+        "value": null,
+        "status": "provisioning",
+        "envVar": "TWILIO_PHONE_NUMBER",
+        "note": "No phone number has been purchased or verified. Provision a US number with SMS, MMS, and voice capability."
+      },
+      "countryCode": "US",
+      "purpose": "Inbound and outbound employee HR communications, notifications, and agent interactions.",
+      "verifiedCapabilities": {
+        "sms": false,
+        "mms": false,
+        "voice": false
+      },
+      "provisioningStatus": "not_purchased"
+    },
+    "consent": {
+      "optInKeywords": ["START", "YES", "UNSTOP"],
+      "optOutKeywords": ["STOP", "STOPALL", "UNSUBSCRIBE", "CANCEL", "END", "QUIT"],
+      "helpKeywords": ["HELP", "INFO"],
+      "confirmationMessage": "You are opted in to PeopleOS company HR messages. Reply HELP for help or STOP to opt out.",
+      "optOutAcknowledgement": "You are opted out of PeopleOS company HR messages. Reply START to opt in again.",
+      "helpResponse": "PeopleOS HR messaging. Reply STOP to opt out. Contact your company HR administrator for account help.",
+      "retentionDays": 365,
+      "sourceUrl": null
+    },
+    "notifications": {
+      "shiftReminder": {
+        "channels": ["sms"],
+        "recipients": ["employee"],
+        "requiresConsent": true
+      },
+      "attendanceEscalation": {
+        "channels": ["sms", "voice"],
+        "recipients": ["manager", "supervisor"],
+        "requiresConsent": true
+      },
+      "leaveDecision": {
+        "channels": ["sms"],
+        "recipients": ["employee"],
+        "requiresConsent": true
+      },
+      "payrollApproval": {
+        "channels": ["sms", "email"],
+        "recipients": ["owner", "administrator"],
+        "requiresConsent": true
+      },
+      "urgentSafety": {
+        "channels": ["voice", "sms"],
+        "recipients": ["owner", "hr_administrator", "manager"],
+        "requiresConsent": true
+      },
+      "scheduleChange": {
+        "channels": ["sms"],
+        "recipients": ["employee"],
+        "requiresConsent": true
+      }
+    },
+    "webhooks": {
+      "inboundPath": "/api/webhooks/twilio",
+      "statusCallbackPath": "/api/webhooks/twilio/status",
+      "signatureValidation": "twilio_signature_v1"
+    },
+    "health": {
+      "status": "not_configured",
+      "lastCheckedAt": null,
+      "evidence": null
+    }
+  },
+  "hr": {
+    "employmentClassifications": [
+      {
+        "id": "full_time",
+        "name": "Full-time employee",
+        "description": "Scheduled 30 or more hours per week; benefits eligibility requires confirmation.",
+        "overtimeEligible": true,
+        "benefitsEligible": true,
+        "status": "requires_confirmation",
+        "source": {
+          "status": "inferred",
+          "source": "Proposed PeopleOS default; no Spin Marketing handbook was available.",
+          "verifiedAt": null,
+          "verifiedBy": null
+        }
+      },
+      {
+        "id": "part_time",
+        "name": "Part-time employee",
+        "description": "Scheduled fewer than 30 hours per week; overtime eligibility depends on role and jurisdiction.",
+        "overtimeEligible": true,
+        "benefitsEligible": false,
+        "status": "requires_confirmation",
+        "source": {
+          "status": "inferred",
+          "source": "Proposed PeopleOS default; no Spin Marketing handbook was available.",
+          "verifiedAt": null,
+          "verifiedBy": null
+        }
+      },
+      {
+        "id": "temporary",
+        "name": "Temporary employee",
+        "description": "Fixed-term or project-based employee classification.",
+        "overtimeEligible": true,
+        "benefitsEligible": false,
+        "status": "requires_confirmation",
+        "source": {
+          "status": "inferred",
+          "source": "Proposed PeopleOS default; no Spin Marketing handbook was available.",
+          "verifiedAt": null,
+          "verifiedBy": null
+        }
+      },
+      {
+        "id": "contractor",
+        "name": "Independent contractor",
+        "description": "Non-employee engagement. Contractor classification requires legal review and is not enabled for payroll through PeopleOS.",
+        "overtimeEligible": false,
+        "benefitsEligible": false,
+        "status": "requires_confirmation",
+        "source": {
+          "status": "inferred",
+          "source": "Proposed PeopleOS default; classification requires legal review.",
+          "verifiedAt": null,
+          "verifiedBy": null
+        }
+      }
+    ],
+    "policies": [
+      {
+        "id": "EMP-001",
+        "name": "Employment classifications",
+        "category": "employment",
+        "description": "Defines employee and contractor classifications used for scheduling, overtime eligibility, benefits eligibility, and payroll routing. Classification decisions require company confirmation and legal review before enforcement.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary", "contractor"], "jurisdictions": ["US"]},
+        "rules": {"writtenClassificationRequired": true, "classificationChangeRequiresApproval": true, "contractorPayrollEnabled": false},
+        "approvals": {"requiredRoles": ["hr_administrator"], "minimumApprovals": 1, "escalateTo": "owner"},
+        "responsibleRoles": ["owner", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Classification rules are advisory until Spin Marketing confirms classifications and applicable law is reviewed."},
+        "exceptions": ["Reclassification requires documented legal and HR review."],
+        "escalation": ["Unresolved classification questions escalate to the owner."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS operating framework; no Spin Marketing handbook, job architecture, or legal review was available.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "HR-001",
+        "name": "Hiring and onboarding",
+        "category": "hiring",
+        "description": "Proposed hiring and onboarding sequence: written offer approval, role and manager assignment, identity provisioning, policy acknowledgement, and 90-day probation review.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary"], "jurisdictions": ["US"]},
+        "rules": {"writtenOfferRequired": true, "roleAndManagerAssignmentRequired": true, "policyAcknowledgementRequired": true, "probationDays": 90},
+        "approvals": {"requiredRoles": ["hr_administrator", "manager"], "minimumApprovals": 1, "escalateTo": "owner"},
+        "responsibleRoles": ["hr_administrator", "manager"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Onboarding tasks may be prepared, but employee activation and Microsoft provisioning require confirmed company policy and credentials."},
+        "exceptions": ["Urgent temporary hiring still requires an authorized written offer."],
+        "escalation": ["Offer or classification conflicts escalate to the owner."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS onboarding control; no Spin Marketing hiring process was supplied.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "HR-002",
+        "name": "Employee records",
+        "category": "records",
+        "description": "Proposed employee record standard: one tenant-scoped personnel record, restricted access by role, documented corrections, and retention according to the privacy policy.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary", "contractor"], "jurisdictions": ["US"]},
+        "rules": {"personnelFileRequired": true, "accessRestrictedByRole": true, "correctionAuditRequired": true},
+        "approvals": {"requiredRoles": ["hr_administrator"], "minimumApprovals": 1, "escalateTo": "owner"},
+        "responsibleRoles": ["hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Record access remains tenant-isolated and role-scoped; retention changes require confirmation."},
+        "exceptions": ["Lawful investigation holds must be documented and approved."],
+        "escalation": ["Suspected unauthorized record access escalates immediately to the owner and security review."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS records control; retention periods require legal review.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "TIME-001",
+        "name": "Scheduling and shifts",
+        "category": "scheduling",
+        "description": "Proposed scheduling standard: managers publish shifts with reasonable notice, employees provide availability, and schedule changes require approval until the policy is confirmed.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary"], "jurisdictions": ["US"]},
+        "rules": {"scheduleNoticeDays": 7, "availabilityRequired": true, "scheduleVersioningRequired": true, "workweekStartsOn": "sunday"},
+        "approvals": {"requiredRoles": ["manager", "supervisor"], "minimumApprovals": 1, "escalateTo": "hr_administrator"},
+        "responsibleRoles": ["manager", "supervisor"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Schedules may be prepared, but published changes are flagged for policy confirmation until approved."},
+        "exceptions": ["Emergency coverage may be documented after the fact with manager approval."],
+        "escalation": ["Repeated schedule disputes escalate to the HR administrator."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS scheduling framework; notice periods and workweek require Spin Marketing confirmation.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "TIME-002",
+        "name": "Attendance and timekeeping",
+        "category": "attendance",
+        "description": "Proposed attendance standard: employees record time through the configured company channel, a seven-minute grace period applies, no rounding is performed, and unverified time is not payable.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary"], "jurisdictions": ["US"]},
+        "rules": {"clockRequired": true, "clockInGraceMinutes": 7, "clockOutGraceMinutes": 7, "roundingMode": "none", "verifiedTimeRequiredForPay": true},
+        "approvals": {"requiredRoles": ["manager"], "minimumApprovals": 1, "escalateTo": "hr_administrator"},
+        "responsibleRoles": ["manager", "supervisor", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Time is recorded and reconciled, but payroll release remains blocked until attendance and pay policies are confirmed."},
+        "exceptions": ["Documented emergency or approved accommodation."],
+        "escalation": ["Unresolved attendance disputes escalate to HR; safety-related absences escalate immediately."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS attendance settings; grace and rounding require Spin Marketing confirmation.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "TIME-003",
+        "name": "Breaks and meal periods",
+        "category": "breaks",
+        "description": "Proposed break standard: a 30-minute unpaid meal period triggers after six hours, paid rest breaks are provided, and automatic meal deduction is proposed pending confirmation.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary"], "jurisdictions": ["US"]},
+        "rules": {"unpaidMealTriggerAfterMinutes": 360, "unpaidMealMinimumMinutes": 30, "unpaidMealMaximumMinutes": 60, "paidRestMinutesPerFourHours": 10, "autoDeductMeal": true},
+        "approvals": {"requiredRoles": ["manager"], "minimumApprovals": 1, "escalateTo": "hr_administrator"},
+        "responsibleRoles": ["manager", "supervisor", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Break rules are calculated and reported; automatic deduction must not be treated as confirmed law or policy."},
+        "exceptions": ["Missed or interrupted breaks must be reported and reviewed."],
+        "escalation": ["Repeated missed breaks escalate to HR."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS break defaults; meal and rest break requirements are jurisdiction-specific and require legal review.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "PAY-001",
+        "name": "Overtime",
+        "category": "overtime",
+        "description": "Proposed overtime framework: non-exempt work above 40 hours in the Sunday-to-Saturday workweek is recorded as overtime at 1.5 times the applicable regular rate, subject to confirmation and payroll engine calculation.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary"], "jurisdictions": ["US"]},
+        "rules": {"weeklyThresholdMinutes": 2400, "dailyThresholdMinutes": null, "multiplier": 1.5, "workweekStartDay": "sunday", "overtimeRequiresApproval": true},
+        "approvals": {"requiredRoles": ["manager", "supervisor"], "minimumApprovals": 1, "escalateTo": "hr_administrator"},
+        "responsibleRoles": ["manager", "payroll_administrator", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Overtime is calculated for reporting only; it is not released to payroll until policy and classification review is confirmed."},
+        "exceptions": ["Emergency work still requires documented manager approval."],
+        "escalation": ["Unapproved overtime or threshold disputes escalate to HR and payroll review."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS overtime default based on a 40-hour workweek; no Spin Marketing policy or legal review was available.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "LVE-001",
+        "name": "Paid time off and vacation",
+        "category": "leave",
+        "description": "Proposed paid time off plan: up to 160 hours annually accrued per pay period, manager approval required, and no automatic approval.",
+        "applicability": {"employmentTypes": ["full_time", "part_time"], "jurisdictions": ["US"]},
+        "rules": {"annualAllowanceMinutes": 9600, "accrualMethod": "per_pay_period", "accrualMinutesPerPeriod": 369, "negativeBalanceAllowed": false, "advanceNoticeDays": 5},
+        "approvals": {"requiredRoles": ["manager", "supervisor"], "minimumApprovals": 1, "escalateTo": "hr_administrator"},
+        "responsibleRoles": ["manager", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Requests are collected and routed, but balances and accrual are not treated as confirmed payroll entitlements."},
+        "exceptions": ["Approved medical or statutory leave may override notice requirements after HR review."],
+        "escalation": ["Balance or eligibility disputes escalate to HR."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS PTO default; no Spin Marketing PTO plan or accrual rule was supplied.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "LVE-002",
+        "name": "Sick leave",
+        "category": "leave",
+        "description": "Proposed sick leave plan: up to 80 hours annually accrued per pay period, available for personal illness or caregiving, with manager review and HR escalation for abuse concerns.",
+        "applicability": {"employmentTypes": ["full_time", "part_time"], "jurisdictions": ["US"]},
+        "rules": {"annualAllowanceMinutes": 4800, "accrualMethod": "per_pay_period", "accrualMinutesPerPeriod": 185, "medicalDocumentationMayBeRequested": true},
+        "approvals": {"requiredRoles": ["manager", "supervisor"], "minimumApprovals": 1, "escalateTo": "hr_administrator"},
+        "responsibleRoles": ["manager", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Sick leave requests are recorded; statutory entitlements and documentation rules require confirmation."},
+        "exceptions": ["Urgent illness may be reported after the shift starts through the configured channel."],
+        "escalation": ["Suspected misuse escalates to HR; retaliation concerns escalate to the owner."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS sick leave default; statutory sick leave requirements require confirmation.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "LVE-003",
+        "name": "Holidays",
+        "category": "holidays",
+        "description": "Proposed holiday schedule for 2026 using commonly observed US holidays. The list is not an approved company calendar.",
+        "applicability": {"employmentTypes": ["full_time", "part_time"], "jurisdictions": ["US"]},
+        "rules": {"paidHolidayRequiresPolicyApproval": true, "holidayPayForEligibleEmployees": true, "observedHolidayRule": "company_calendar"},
+        "approvals": {"requiredRoles": ["owner", "hr_administrator"], "minimumApprovals": 1, "escalateTo": "owner"},
+        "responsibleRoles": ["owner", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Holiday dates are displayed as proposed and do not create paid-time entitlements until confirmed."},
+        "exceptions": ["Customer or event coverage may require an approved alternative day."],
+        "escalation": ["Holiday pay disputes escalate to the owner."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed US holiday calendar assembled from commonly observed holidays; no Spin Marketing calendar was supplied.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "LVE-004",
+        "name": "Leave of absence",
+        "category": "leave",
+        "description": "Proposed leave-of-absence framework for unpaid personal leave, protected leave routing, and return-to-work review. Statutory leave obligations require legal review.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary"], "jurisdictions": ["US"]},
+        "rules": {"unpaidPersonalLeaveMaxDays": 30, "protectedLeaveRequiresLegalReview": true, "returnToWorkReviewRequired": true},
+        "approvals": {"requiredRoles": ["hr_administrator", "owner"], "minimumApprovals": 1, "escalateTo": "owner"},
+        "responsibleRoles": ["owner", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Leave requests are routed for human review; no statutory eligibility or entitlement is determined by PeopleOS."},
+        "exceptions": ["Emergency protected leave must be routed to HR immediately."],
+        "escalation": ["All protected or medical leave escalates to HR and legal review."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS leave framework; no legal analysis of FMLA, state, or local leave laws was performed.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "TIME-004",
+        "name": "Availability and attendance exceptions",
+        "category": "attendance",
+        "description": "Proposed availability and exception framework: employees maintain declared availability, exceptions are documented, and recurring conflicts are reviewed by the manager and HR.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary"], "jurisdictions": ["US"]},
+        "rules": {"availabilityReviewDays": 14, "recurringExceptionEscalationCount": 3, "approvedAccommodationRequired": true},
+        "approvals": {"requiredRoles": ["manager", "supervisor"], "minimumApprovals": 1, "escalateTo": "hr_administrator"},
+        "responsibleRoles": ["manager", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Exceptions are logged for human review and never used to silently reduce recorded time."},
+        "exceptions": ["Approved accommodation or protected leave overrides availability expectations."],
+        "escalation": ["Accommodation requests escalate to HR and the owner."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS availability framework; accommodation obligations require legal review.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "TIME-005",
+        "name": "Missed punches and corrections",
+        "category": "attendance",
+        "description": "Proposed correction process: employees report missed punches through the company channel, managers approve corrections within 14 days, and every correction is appended to the audit history.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary"], "jurisdictions": ["US"]},
+        "rules": {"correctionRequiresApproval": true, "maxCorrectionDays": 14, "sourceEvidenceRequired": true, "negativeCorrectionAllowed": false},
+        "approvals": {"requiredRoles": ["manager", "supervisor"], "minimumApprovals": 1, "escalateTo": "hr_administrator"},
+        "responsibleRoles": ["manager", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Corrections are recorded as pending approvals and are not applied to payroll until the policy is confirmed."},
+        "exceptions": ["System outage corrections may exceed the window with administrator approval."],
+        "escalation": ["Corrections beyond the window or with conflicting evidence escalate to HR."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS correction control; no Spin Marketing timekeeping policy was supplied.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "PAY-002",
+        "name": "Payroll periods and approvals",
+        "category": "payroll",
+        "description": "Proposed payroll cycle: biweekly periods anchored on 2026-01-05 in America/Chicago, a two-day pre-close cutoff, and authorized release approval. Live payroll remains disabled until provider, tax, and identity configuration is verified.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary"], "jurisdictions": ["US"]},
+        "rules": {"frequency": "biweekly", "anchorDate": "2026-01-05", "cutoffDaysBeforeEnd": 2, "releaseRequiresApproval": true, "dualApprovalRecommended": true, "livePayrollEnabled": false},
+        "approvals": {"requiredRoles": ["owner", "administrator"], "minimumApprovals": 1, "escalateTo": "owner"},
+        "responsibleRoles": ["owner", "payroll_administrator", "administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Pay period calculation and approvals are supported; payroll release stays disabled until configuration activation requirements are satisfied."},
+        "exceptions": ["Off-cycle payroll requires owner approval and documented reason."],
+        "escalation": ["Payroll disputes escalate to the owner and payroll administrator."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS payroll cycle; pay frequency and anchor date require Spin Marketing confirmation.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "PAY-003",
+        "name": "Pay rates and compensation changes",
+        "category": "compensation",
+        "description": "Proposed compensation control: pay rates are stored as tenant-scoped records, changes require authorized approval, and no rate change takes effect retroactively without documented approval.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary"], "jurisdictions": ["US"]},
+        "rules": {"payRateChangeRequiresApproval": true, "effectiveDateRequired": true, "retroactiveChangeRequiresOwnerApproval": true, "minimumWageReviewRequired": true},
+        "approvals": {"requiredRoles": ["owner", "hr_administrator"], "minimumApprovals": 1, "escalateTo": "owner"},
+        "responsibleRoles": ["owner", "hr_administrator", "payroll_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Compensation changes are captured as pending approvals; no wage is calculated from inferred policy."},
+        "exceptions": ["Legally required minimum wage adjustments still require documented owner approval."],
+        "escalation": ["Pay equity or minimum wage concerns escalate to the owner with legal review."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS compensation control; minimum wage and pay equity obligations require confirmation.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "PAY-004",
+        "name": "Reimbursements and expenses",
+        "category": "expenses",
+        "description": "Proposed expense framework: pre-approval for large expenses, receipts required above a threshold, submission within 30 days, and manager approval routed to HR for exceptions.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary"], "jurisdictions": ["US"]},
+        "rules": {"receiptRequiredOverAmount": 25, "submissionWindowDays": 30, "preApprovalRequiredOverAmount": 500, "reimbursementRequiresApproval": true},
+        "approvals": {"requiredRoles": ["manager"], "minimumApprovals": 1, "escalateTo": "hr_administrator"},
+        "responsibleRoles": ["manager", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Expense claims are collected and routed; no reimbursement is issued until the policy is confirmed and the payroll process is enabled."},
+        "exceptions": ["Emergency expenses may be reimbursed with owner approval and documentation."],
+        "escalation": ["Suspected expense fraud escalates to the owner and may trigger investigation."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS expense control; thresholds require Spin Marketing confirmation.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "HR-003",
+        "name": "Performance management",
+        "category": "performance",
+        "description": "Proposed performance framework: documented expectations, quarterly reviews, a 60-day probation review, and employee response opportunity. Performance action affecting pay or status requires approval.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary"], "jurisdictions": ["US"]},
+        "rules": {"reviewFrequency": "quarterly", "probationReviewDays": 60, "employeeResponseAllowed": true, "performanceActionRequiresApproval": true},
+        "approvals": {"requiredRoles": ["manager", "hr_administrator"], "minimumApprovals": 1, "escalateTo": "owner"},
+        "responsibleRoles": ["manager", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Reviews and notes are recorded; adverse employment action requires a human decision and confirmed policy."},
+        "exceptions": ["Immediate safety or conduct concerns follow the escalation policy."],
+        "escalation": ["Disputed reviews and retaliation concerns escalate to the owner."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS performance framework; no Spin Marketing review process was supplied.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "HR-004",
+        "name": "Discipline and complaints",
+        "category": "discipline",
+        "description": "Proposed discipline and complaint process: documented concerns, employee response, consistent treatment, and escalation to HR. No automatic discipline is imposed by an agent.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary"], "jurisdictions": ["US"]},
+        "rules": {"writtenDocumentationRequired": true, "employeeResponseAllowed": true, "agentMayImposeDiscipline": false, "investigationRequiredForSeriousComplaints": true},
+        "approvals": {"requiredRoles": ["hr_administrator", "owner"], "minimumApprovals": 1, "escalateTo": "owner"},
+        "responsibleRoles": ["hr_administrator", "owner"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Complaints are routed to authorized humans; no agent or inferred policy may impose discipline."},
+        "exceptions": ["Immediate safety threats require emergency escalation."],
+        "escalation": ["Retaliation, discrimination, or serious misconduct escalates to the owner and legal review."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS discipline framework; no Spin Marketing disciplinary process or legal review was available.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "HR-005",
+        "name": "Workplace conduct",
+        "category": "conduct",
+        "description": "Proposed workplace conduct standard: professionalism, non-retaliation, accurate records, protection of confidential information, and reporting of conflicts or misconduct.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary", "contractor"], "jurisdictions": ["US"]},
+        "rules": {"confidentialityRequired": true, "nonRetaliationRequired": true, "conflictDisclosureRequired": true, "recordsMustBeAccurate": true},
+        "approvals": {"requiredRoles": ["hr_administrator"], "minimumApprovals": 1, "escalateTo": "owner"},
+        "responsibleRoles": ["hr_administrator", "owner"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Conduct reports are routed to authorized humans for review; this proposed standard is not represented as an approved handbook."},
+        "exceptions": ["Protected activity and legally required reporting are never restricted."],
+        "escalation": ["Retaliation or credible threats escalate immediately to the owner."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS conduct framework; no Spin Marketing handbook was supplied.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "HR-006",
+        "name": "Anti-harassment and equal opportunity",
+        "category": "equal_opportunity",
+        "description": "Proposed framework for reporting and investigating harassment or discrimination and for equal-opportunity decision-making. Legal obligations, notice periods, and required training require qualified legal review.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary", "contractor"], "jurisdictions": ["US"]},
+        "rules": {"complaintChannelRequired": true, "investigationRequired": true, "retaliationProhibited": true, "trainingRequirementsConfirmed": false},
+        "approvals": {"requiredRoles": ["owner", "hr_administrator"], "minimumApprovals": 1, "escalateTo": "owner"},
+        "responsibleRoles": ["owner", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Complaints are routed for human investigation. PeopleOS does not determine whether conduct is unlawful."},
+        "exceptions": ["No exception permits retaliation or evidence destruction."],
+        "escalation": ["All harassment or discrimination complaints escalate to the owner and legal counsel."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed policy outline only. No legal requirements were invented; qualified counsel must review before approval.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "SAFE-001",
+        "name": "Workplace safety",
+        "category": "safety",
+        "description": "Proposed safety framework: report injuries and imminent hazards immediately through SMS or voice, preserve the scene when safe, and route incidents to an authorized human. Emergency services are always appropriate.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary", "contractor"], "jurisdictions": ["US"]},
+        "rules": {"immediateReportingRequired": true, "incidentReportRequired": true, "emergencyServicesNeverDelayed": true, "hazardInvestigationRequired": true},
+        "approvals": {"requiredRoles": ["owner", "hr_administrator"], "minimumApprovals": 1, "escalateTo": "owner"},
+        "responsibleRoles": ["owner", "hr_administrator", "manager"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Safety reports are accepted immediately and escalated; no agent response delays emergency assistance."},
+        "exceptions": ["Life-threatening emergencies must be directed to emergency services first."],
+        "escalation": ["Injury, imminent hazard, or threat escalates by voice to the owner and HR."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS safety framework; workplace safety obligations and emergency contacts require company confirmation.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "HR-007",
+        "name": "Termination and offboarding",
+        "category": "termination",
+        "description": "Proposed offboarding control: authorized human decision, documented effective date, access revocation within four hours, property return, final time reconciliation, and final pay through deterministic payroll. No agent may terminate employment.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary", "contractor"], "jurisdictions": ["US"]},
+        "rules": {"agentMayTerminate": false, "writtenApprovalRequired": true, "accessRevocationHours": 4, "finalPayReviewRequired": true, "exitInterviewOffered": true},
+        "approvals": {"requiredRoles": ["owner", "hr_administrator"], "minimumApprovals": 1, "escalateTo": "owner"},
+        "responsibleRoles": ["owner", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Termination requests are routed for human approval; Microsoft and PeopleOS access revocation is executed only after confirmation."},
+        "exceptions": ["Immediate access suspension for security or safety may precede the full decision review."],
+        "escalation": ["Disputed terminations and retaliation claims escalate to the owner with legal review."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS offboarding control; final pay timing and notice obligations require legal review.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "PRIV-001",
+        "name": "Privacy and document retention",
+        "category": "privacy",
+        "description": "Proposed privacy and retention framework: tenant-isolated records, least-privilege access, restricted sensitive fields, encrypted storage, and documented retention. Retention durations require legal review.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary", "contractor"], "jurisdictions": ["US"]},
+        "rules": {"crossTenantAccess": "deny", "sensitiveFieldsRestricted": true, "encryptionAtRestRequired": true, "deletionRequiresApproval": true, "documentRetentionDays": 2555},
+        "approvals": {"requiredRoles": ["owner"], "minimumApprovals": 1, "escalateTo": null},
+        "responsibleRoles": ["owner", "hr_administrator"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Access controls are enforced in code and database policy; retention periods are displayed as proposed until confirmed."},
+        "exceptions": ["Legal hold or investigation preservation requires documented approval."],
+        "escalation": ["Suspected data breach or cross-tenant access escalates immediately to the owner and security review."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS privacy framework; no legal data-retention analysis was performed for Spin Marketing.", "verifiedAt": null, "verifiedBy": null}
+      },
+      {
+        "id": "HR-008",
+        "name": "HR escalation and approval authority",
+        "category": "escalation",
+        "description": "Proposed escalation matrix: managers handle routine schedule, time, and leave decisions; HR handles employment, accommodation, and complaint matters; the owner handles payroll release, compensation, policy overrides, and termination.",
+        "applicability": {"employmentTypes": ["full_time", "part_time", "temporary", "contractor"], "jurisdictions": ["US"]},
+        "rules": {"routineApprovalRoles": ["manager", "supervisor"], "hrApprovalRoles": ["hr_administrator"], "ownerApprovalActions": ["payroll_release", "pay_rate_change", "bank_account_change", "tax_profile_change", "employment_termination", "policy_override"], "agentMaySelfApprove": false},
+        "approvals": {"requiredRoles": ["owner"], "minimumApprovals": 1, "escalateTo": null},
+        "responsibleRoles": ["owner", "hr_administrator", "manager"],
+        "effectiveDate": "2026-11-10",
+        "jurisdiction": "US",
+        "enforcement": {"mode": "advisory", "behavior": "Approval authority is enforced from the configured matrix for requests; final authority assignments require Spin Marketing confirmation."},
+        "exceptions": ["Emergency safety incidents bypass routine approval but never financial or employment controls."],
+        "escalation": ["Unresolved or conflicting approvals escalate to the owner."],
+        "status": "requires_confirmation",
+        "source": {"status": "inferred", "source": "Proposed PeopleOS approval hierarchy; no Spin Marketing authorization schedule was supplied.", "verifiedAt": null, "verifiedBy": null}
+      }
+    ],
+    "approvals": {
+      "matrix": [
+        {
+          "action": "payroll_release",
+          "requiredRoles": ["owner", "administrator"],
+          "minimumApprovals": 1,
+          "amountThreshold": null,
+          "escalateTo": "owner",
+          "notes": "Proposed control. Live payroll remains disabled until provider, tax, and identity configuration is verified."
+        },
+        {
+          "action": "pay_rate_change",
+          "requiredRoles": ["owner", "hr_administrator"],
+          "minimumApprovals": 1,
+          "amountThreshold": null,
+          "escalateTo": "owner",
+          "notes": "Proposed control requiring confirmation."
+        },
+        {
+          "action": "bank_account_change",
+          "requiredRoles": ["owner"],
+          "minimumApprovals": 1,
+          "amountThreshold": null,
+          "escalateTo": null,
+          "notes": "Proposed control requiring confirmation."
+        },
+        {
+          "action": "tax_profile_change",
+          "requiredRoles": ["owner"],
+          "minimumApprovals": 1,
+          "amountThreshold": null,
+          "escalateTo": null,
+          "notes": "Proposed control requiring confirmation."
+        },
+        {
+          "action": "employment_termination",
+          "requiredRoles": ["owner", "hr_administrator"],
+          "minimumApprovals": 1,
+          "amountThreshold": null,
+          "escalateTo": "owner",
+          "notes": "Proposed control requiring confirmation."
+        },
+        {
+          "action": "policy_override",
+          "requiredRoles": ["owner"],
+          "minimumApprovals": 1,
+          "amountThreshold": null,
+          "escalateTo": null,
+          "notes": "Proposed control requiring confirmation."
+        },
+        {
+          "action": "time_correction",
+          "requiredRoles": ["manager", "supervisor"],
+          "minimumApprovals": 1,
+          "amountThreshold": null,
+          "escalateTo": "hr_administrator",
+          "notes": "Proposed control requiring confirmation."
+        },
+        {
+          "action": "leave_request",
+          "requiredRoles": ["manager", "supervisor"],
+          "minimumApprovals": 1,
+          "amountThreshold": null,
+          "escalateTo": "hr_administrator",
+          "notes": "Proposed control requiring confirmation."
+        },
+        {
+          "action": "schedule_change",
+          "requiredRoles": ["manager", "supervisor"],
+          "minimumApprovals": 1,
+          "amountThreshold": null,
+          "escalateTo": "hr_administrator",
+          "notes": "Proposed control requiring confirmation."
+        },
+        {
+          "action": "expense_reimbursement",
+          "requiredRoles": ["manager"],
+          "minimumApprovals": 1,
+          "amountThreshold": 500,
+          "escalateTo": "hr_administrator",
+          "notes": "Proposed control requiring confirmation."
+        },
+        {
+          "action": "hire",
+          "requiredRoles": ["hr_administrator", "manager"],
+          "minimumApprovals": 1,
+          "amountThreshold": null,
+          "escalateTo": "owner",
+          "notes": "Proposed control requiring confirmation."
+        }
+      ]
+    },
+    "timekeeping": {
+      "workweek": {
+        "startDay": "sunday",
+        "timezone": "America/Chicago",
+        "policyId": "TIME-001"
+      },
+      "payPeriods": {
+        "frequency": "biweekly",
+        "anchorDate": "2026-01-05",
+        "timezone": "America/Chicago",
+        "cutoffDaysBeforeEnd": 2,
+        "approvalAction": "payroll_release",
+        "policyId": "PAY-002"
+      },
+      "breaks": {
+        "unpaidMeal": {
+          "triggerAfterMinutes": 360,
+          "minimumMinutes": 30,
+          "maximumMinutes": 60,
+          "autoDeduct": true,
+          "policyId": "TIME-003"
+        },
+        "rest": [
+          {
+            "name": "Paid rest break",
+            "paid": true,
+            "minutes": 10,
+            "perHoursWorked": 4,
+            "policyId": "TIME-003"
+          }
+        ]
+      },
+      "overtime": {
+        "weeklyThresholdMinutes": 2400,
+        "dailyThresholdMinutes": null,
+        "multiplier": 1.5,
+        "treatment": "weekly",
+        "policyId": "PAY-001"
+      },
+      "grace": {
+        "clockInMinutes": 7,
+        "clockOutMinutes": 7,
+        "policyId": "TIME-002"
+      },
+      "rounding": {
+        "mode": "none",
+        "incrementMinutes": 1,
+        "policyId": "TIME-002"
+      },
+      "missedPunch": {
+        "correctionRequiresApproval": true,
+        "approvalAction": "time_correction",
+        "maxCorrectionDays": 14,
+        "policyId": "TIME-005"
+      }
+    },
+    "leave": {
+      "requestAdvanceDays": 5,
+      "maxConsecutiveDays": 10,
+      "types": [
+        {
+          "id": "pto",
+          "name": "Paid time off",
+          "paid": true,
+          "accrual": {
+            "annualAllowanceMinutes": 9600,
+            "accrualMethod": "per_pay_period",
+            "accrualMinutesPerPeriod": 369
+          },
+          "requiresApproval": true,
+          "approvalAction": "leave_request",
+          "policyId": "LVE-001",
+          "status": "requires_confirmation"
+        },
+        {
+          "id": "sick",
+          "name": "Sick leave",
+          "paid": true,
+          "accrual": {
+            "annualAllowanceMinutes": 4800,
+            "accrualMethod": "per_pay_period",
+            "accrualMinutesPerPeriod": 185
+          },
+          "requiresApproval": true,
+          "approvalAction": "leave_request",
+          "policyId": "LVE-002",
+          "status": "requires_confirmation"
+        },
+        {
+          "id": "unpaid_personal",
+          "name": "Unpaid personal leave",
+          "paid": false,
+          "accrual": {
+            "annualAllowanceMinutes": null,
+            "accrualMethod": "none",
+            "accrualMinutesPerPeriod": null
+          },
+          "requiresApproval": true,
+          "approvalAction": "leave_request",
+          "policyId": "LVE-004",
+          "status": "requires_confirmation"
+        }
+      ]
+    },
+    "holidays": [
+      {"date": "2026-01-01", "name": "New Year's Day", "paid": true, "jurisdiction": "US", "status": "requires_confirmation", "policyId": "LVE-003"},
+      {"date": "2026-05-25", "name": "Memorial Day", "paid": true, "jurisdiction": "US", "status": "requires_confirmation", "policyId": "LVE-003"},
+      {"date": "2026-07-03", "name": "Independence Day (observed)", "paid": true, "jurisdiction": "US", "status": "requires_confirmation", "policyId": "LVE-003"},
+      {"date": "2026-09-07", "name": "Labor Day", "paid": true, "jurisdiction": "US", "status": "requires_confirmation", "policyId": "LVE-003"},
+      {"date": "2026-11-26", "name": "Thanksgiving Day", "paid": true, "jurisdiction": "US", "status": "requires_confirmation", "policyId": "LVE-003"},
+      {"date": "2026-12-25", "name": "Christmas Day", "paid": true, "jurisdiction": "US", "status": "requires_confirmation", "policyId": "LVE-003"}
+    ],
+    "onboarding": {
+      "tasks": [
+        "Collect confirmed legal name, work authorization, and tax withholding documents.",
+        "Assign role, manager, employment classification, and work location.",
+        "Provision Microsoft Entra identity and company mailbox.",
+        "Enroll the employee in the company SMS/voice channel after consent.",
+        "Review timekeeping, break, leave, and safety policies."
+      ],
+      "requiredDocuments": [
+        "Signed employment agreement",
+        "Completed tax withholding form",
+        "Identity and work authorization verification",
+        "Signed policy acknowledgement"
+      ],
+      "probationDays": 90,
+      "policyId": "HR-001"
+    },
+    "offboarding": {
+      "tasks": [
+        "Record authorized termination decision and effective date.",
+        "Revoke Microsoft identity, mailbox, Teams, and PeopleOS access.",
+        "Collect company property and confirm final time records.",
+        "Calculate final pay through the deterministic payroll process.",
+        "Send required notices through an approved channel."
+      ],
+      "returnAssets": ["Laptop", "Phone", "Badge", "Company documents"],
+      "revokeAccessWithinHours": 4,
+      "finalPayPolicyId": "PAY-002",
+      "policyId": "HR-007"
+    },
+    "performance": {
+      "reviewFrequency": "quarterly",
+      "probationReviewDays": 60,
+      "policyId": "HR-003"
+    },
+    "conduct": {
+      "complaintChannels": ["sms", "voice", "email"],
+      "investigationRequired": true,
+      "policyIds": ["HR-004", "HR-005", "HR-006"]
+    },
+    "safety": {
+      "emergencyContact": {
+        "value": null,
+        "status": "requires_confirmation",
+        "note": "Emergency contact number must be supplied by Spin Marketing; it is not invented."
+      },
+      "reportingChannels": ["sms", "voice"],
+      "incidentReportRequired": true,
+      "policyId": "SAFE-001"
+    },
+    "privacy": {
+      "documentRetentionDays": 2555,
+      "payrollRetentionYears": 7,
+      "employeeRecordRetentionYears": 7,
+      "policyId": "PRIV-001"
+    }
+  },
+  "workforce": {
+    "roles": [
+      {
+        "id": "owner",
+        "name": "Company owner",
+        "membershipRole": "owner",
+        "permissions": ["*"],
+        "dataAccess": {"employeeRecords": "all", "compensation": "all", "documents": "all", "messages": "all"},
+        "escalationTo": null
+      },
+      {
+        "id": "administrator",
+        "name": "Company administrator",
+        "membershipRole": "administrator",
+        "permissions": [
+          "company.configuration.read", "company.configuration.write", "employee.read", "employee.write",
+          "policy.read", "schedule.read", "schedule.manage", "timekeeping.read", "leave.read",
+          "payroll.read", "expense.approve", "audit.read", "agent.configure",
+          "integration.health.read", "messaging.send", "messaging.consent.manage"
+        ],
+        "dataAccess": {"employeeRecords": "all", "compensation": "all", "documents": "all", "messages": "all"},
+        "escalationTo": "owner"
+      },
+      {
+        "id": "hr_administrator",
+        "name": "HR administrator",
+        "membershipRole": null,
+        "permissions": [
+          "company.configuration.read", "employee.read", "employee.write", "policy.read", "policy.manage",
+          "schedule.read", "timekeeping.read", "timekeeping.correction.approve", "leave.read",
+          "leave.request.approve", "audit.read", "integration.health.read", "messaging.send"
+        ],
+        "dataAccess": {"employeeRecords": "all", "compensation": "team", "documents": "all", "messages": "team"},
+        "escalationTo": "owner"
+      },
+      {
+        "id": "manager",
+        "name": "Manager",
+        "membershipRole": "manager",
+        "permissions": [
+          "company.configuration.read", "employee.read", "policy.read", "schedule.read", "schedule.manage",
+          "timekeeping.read", "timekeeping.correction.approve", "leave.read", "leave.request.approve",
+          "expense.approve", "messaging.send"
+        ],
+        "dataAccess": {"employeeRecords": "team", "compensation": "self", "documents": "team", "messages": "team"},
+        "escalationTo": "hr_administrator"
+      },
+      {
+        "id": "supervisor",
+        "name": "Supervisor",
+        "membershipRole": null,
+        "permissions": [
+          "company.configuration.read", "employee.read", "policy.read", "schedule.read", "schedule.manage",
+          "timekeeping.read", "timekeeping.correction.approve", "leave.read", "messaging.send"
+        ],
+        "dataAccess": {"employeeRecords": "team", "compensation": "none", "documents": "self", "messages": "team"},
+        "escalationTo": "manager"
+      },
+      {
+        "id": "payroll_administrator",
+        "name": "Payroll administrator",
+        "membershipRole": null,
+        "permissions": [
+          "company.configuration.read", "employee.read", "policy.read", "timekeeping.read", "leave.read",
+          "payroll.read", "audit.read", "integration.health.read"
+        ],
+        "dataAccess": {"employeeRecords": "all", "compensation": "all", "documents": "self", "messages": "none"},
+        "escalationTo": "owner"
+      },
+      {
+        "id": "employee",
+        "name": "Employee",
+        "membershipRole": null,
+        "permissions": ["employee.read", "policy.read", "timekeeping.read", "leave.read", "leave.request.create"],
+        "dataAccess": {"employeeRecords": "self", "compensation": "self", "documents": "self", "messages": "self"},
+        "escalationTo": "manager"
+      },
+      {
+        "id": "auditor",
+        "name": "Auditor",
+        "membershipRole": "auditor",
+        "permissions": ["company.configuration.read", "policy.read", "audit.read", "integration.health.read"],
+        "dataAccess": {"employeeRecords": "none", "compensation": "none", "documents": "none", "messages": "none"},
+        "escalationTo": "owner"
+      }
+    ],
+    "approvalHierarchy": [
+      {"level": 1, "roleId": "supervisor", "canApproveActions": ["time_correction", "leave_request", "schedule_change"], "maxAmount": null},
+      {"level": 2, "roleId": "manager", "canApproveActions": ["time_correction", "leave_request", "schedule_change", "expense_reimbursement"], "maxAmount": 500},
+      {"level": 3, "roleId": "hr_administrator", "canApproveActions": ["time_correction", "leave_request", "expense_reimbursement", "hire", "pay_rate_change", "employment_termination"], "maxAmount": null},
+      {"level": 4, "roleId": "administrator", "canApproveActions": ["payroll_release", "expense_reimbursement"], "maxAmount": null},
+      {"level": 5, "roleId": "owner", "canApproveActions": ["payroll_release", "bank_account_change", "tax_profile_change", "pay_rate_change", "employment_termination", "policy_override", "hire"], "maxAmount": null}
+    ],
+    "delegation": {
+      "allowed": true,
+      "maxDays": 14,
+      "requiresApprovalBy": "owner"
+    },
+    "reporting": {
+      "defaultManagerRoleId": "manager",
+      "requireManagerAssignment": true,
+      "crossTenantReportingAllowed": false
+    }
+  },
+  "agents": {
+    "runtime": {
+      "instructionResolution": "active_tenant_configuration",
+      "auditAllActions": true,
+      "crossTenantContext": "deny",
+      "policyResolution": "active_tenant_configuration"
+    },
+    "definitions": [
+      {
+        "id": "hr_manager",
+        "name": "Spin Marketing HR Manager",
+        "enabled": true,
+        "purpose": "Coordinates employee HR requests for Spin Marketing within confirmed company policies and routes consequential decisions to authorized humans.",
+        "instructions": [
+          "Resolve all company instructions, policies, roles, and approval authority from the active Spin Marketing tenant configuration. Never use another tenant's configuration.",
+          "Treat policies with status proposed or requires_confirmation as unconfirmed. Label them as proposed and never state that they are approved company policy or law.",
+          "Never approve leave, time corrections, payroll, pay changes, terminations, or policy overrides. Prepare the request and route it to the configured approver.",
+          "Use only the configured Microsoft and SMS/voice channels. If an integration is not verified, state that it is unavailable instead of claiming delivery.",
+          "Escalate harassment, discrimination, safety, threats, suspected fraud, and protected leave questions to the configured human escalation path immediately.",
+          "Disclose employee information only after authenticating the requester and confirming the configured role permission and data-access boundary."
+        ],
+        "permittedActions": ["employee.read", "policy.read", "leave.request.create", "timekeeping.read", "absence.report.create", "time_correction.request.create", "notification.send"],
+        "prohibitedActions": ["payroll.release", "pay_rate.change", "bank_account.change", "tax_profile.change", "employment.terminate", "policy.override", "hrs.mint", "hrs.consume", "cross_tenant.read"],
+        "escalationConditions": ["Harassment, discrimination, or retaliation report", "Workplace injury or imminent safety threat", "Protected or medical leave question", "Request to change pay, bank, tax, or employment status", "Conflicting or missing confirmed policy"],
+        "approvalRequiredFor": ["time_correction", "leave_request", "schedule_change", "payroll_release", "pay_rate_change", "employment_termination", "policy_override"],
+        "channels": ["sms", "voice", "email"],
+        "workflowAccess": ["leave_request", "absence_report", "timekeeping_hrs"],
+        "policyAccess": ["HR-001", "HR-002", "HR-003", "HR-004", "HR-005", "HR-006", "HR-007", "HR-008", "TIME-001", "TIME-002", "TIME-003", "TIME-004", "TIME-005", "LVE-001", "LVE-002", "LVE-003", "LVE-004", "SAFE-001", "PRIV-001"],
+        "audit": {"logReads": true, "logActions": true, "retentionDays": 2555}
+      },
+      {
+        "id": "employee_assistant",
+        "name": "Spin Marketing Employee Assistant",
+        "enabled": true,
+        "purpose": "Provides Spin Marketing employees a phone-first interface for verified HR requests, policy questions, time corrections, and absence reporting.",
+        "instructions": [
+          "Authenticate the employee before disclosing records or accepting a sensitive request. A phone number alone is not sufficient authentication.",
+          "Answer policy questions only from the active Spin Marketing configuration and clearly distinguish confirmed policy from proposed policy.",
+          "Record requests through the configured workflow and report the backend-confirmed status. Never claim a request was approved or completed before confirmation.",
+          "Never provide payroll calculations, HRS wallet access, or promises of final pay from conversational context.",
+          "Route harassment, discrimination, injury, threats, and urgent safety reports through the configured escalation path without delay.",
+          "Respect opt-out status and send messages only through a consented, verified company channel."
+        ],
+        "permittedActions": ["employee.read", "policy.read", "timekeeping.read", "leave.read", "leave.request.create", "absence.report.create", "time_correction.request.create"],
+        "prohibitedActions": ["payroll.release", "pay_rate.change", "employment.terminate", "hrs.mint", "hrs.consume", "cross_tenant.read", "policy.override"],
+        "escalationConditions": ["Safety or medical emergency", "Harassment or discrimination report", "Identity verification failure", "Request outside configured permissions"],
+        "approvalRequiredFor": ["time_correction", "leave_request"],
+        "channels": ["sms", "voice"],
+        "workflowAccess": ["leave_request", "absence_report", "timekeeping_hrs"],
+        "policyAccess": ["HR-002", "HR-005", "HR-006", "TIME-002", "TIME-003", "TIME-005", "LVE-001", "LVE-002", "LVE-003", "LVE-004", "SAFE-001", "PRIV-001"],
+        "audit": {"logReads": true, "logActions": true, "retentionDays": 2555}
+      },
+      {
+        "id": "payroll_agent",
+        "name": "Spin Marketing Payroll Agent",
+        "enabled": true,
+        "purpose": "Prepares and explains payroll data from deterministic, tenant-scoped source records. It never disburses funds or treats HRS tokens as wages.",
+        "instructions": [
+          "Use the configured pay periods, overtime rules, approval matrix, and HRS time-token settings from the active Spin Marketing configuration.",
+          "Never use an LLM-generated number as an authoritative wage, deduction, tax, or net-pay result. Mark calculations as estimates until the payroll engine confirms them.",
+          "HRS is a custodial time-accounting token, not earned wages. Never calculate, accrue, or pay wages from HRS quantity or valuation.",
+          "Do not release payroll, change pay rates, change bank accounts, or file taxes. Require the configured human approvals and provider confirmation.",
+          "Label all proposed payroll policies as requiring confirmation. Live payroll remains disabled until provider, tax, and identity verification is complete.",
+          "Preserve source references and audit history for every payroll calculation and correction."
+        ],
+        "permittedActions": ["employee.read", "policy.read", "timekeeping.read", "payroll.read", "payroll.calculate.estimate", "notification.send"],
+        "prohibitedActions": ["payroll.release", "pay_rate.change", "bank_account.change", "tax_profile.change", "hrs.mint", "hrs.consume", "employee.payout", "cross_tenant.read"],
+        "escalationConditions": ["Unapproved overtime or time overage", "Missing tax or bank configuration", "Conflicting time records", "Suspected payroll fraud"],
+        "approvalRequiredFor": ["payroll_release", "pay_rate_change", "bank_account_change", "tax_profile_change"],
+        "channels": ["email", "teams", "web"],
+        "workflowAccess": ["timekeeping_hrs"],
+        "policyAccess": ["PAY-001", "PAY-002", "PAY-003", "PAY-004", "TIME-002", "TIME-003", "TIME-005", "HR-007", "PRIV-001"],
+        "audit": {"logReads": true, "logActions": true, "retentionDays": 2555}
+      }
+    ]
+  },
+  "payroll": {
+    "provider": {
+      "name": {
+        "value": null,
+        "status": "requires_confirmation",
+        "note": "No payroll provider has been selected or verified for Spin Marketing."
+      },
+      "credentials": {
+        "provider": "env",
+        "reference": "env:PAYROLL_PROVIDER_SECRET",
+        "materialIncluded": false,
+        "rotationDays": 180
+      },
+      "status": "not_configured"
+    },
+    "currency": {
+      "value": "USD",
+      "status": "inferred",
+      "note": "Inferred from the proposed US jurisdiction; confirm before payroll use."
+    },
+    "payPeriods": {
+      "frequency": "biweekly",
+      "anchorDate": "2026-01-05",
+      "timezone": "America/Chicago",
+      "approvalAction": "payroll_release",
+      "releaseRequiresDualApproval": false,
+      "cutoffDaysBeforeEnd": 2
+    },
+    "compensation": {
+      "payRateChangeRequiresApproval": true,
+      "bankAccountChangeRequiresApproval": true,
+      "effectiveDateRule": "Pay rate changes take effect at the start of the next approved pay period unless the owner approves a documented exception.",
+      "minimumWageReviewStatus": "not_reviewed"
+    },
+    "timeTokens": {
+      "model": "hrs_minutes",
+      "mintRequiresApprovedSchedule": true,
+      "consumeRequiresVerifiedClockEvent": true,
+      "overtimeTreatment": "scheduled_capacity_only",
+      "correctionsRequireApproval": true,
+      "maxRetroactiveCorrectionDays": 14,
+      "reconcileAtPeriodClose": true,
+      "cashOutEnabled": false,
+      "isWages": false
+    },
+    "expenses": {
+      "reimbursementRequiresApproval": true,
+      "approvalAction": "expense_reimbursement",
+      "receiptRequiredOverAmount": 25,
+      "submissionWindowDays": 30,
+      "policyId": "PAY-004"
+    }
+  },
+  "security": {
+    "tenantIsolation": {
+      "enforcedBy": ["row_level_security", "service_boundary", "application_scope"],
+      "crossTenantAccess": "deny",
+      "agentContextScope": "tenant"
+    },
+    "secretManagement": {
+      "provider": "env",
+      "referencesOnly": true,
+      "rotationDays": 180,
+      "prohibitedInRepository": ["client secrets", "OAuth tokens", "API keys", "passwords", "bank details", "tax identifiers", "private keys", "seed phrases"]
+    },
+    "sensitiveFields": [
+      {"path": "identity.registration.taxIdentifier", "classification": "restricted", "accessRoles": ["owner"], "encryption": "field_level_required", "retentionDays": 2555},
+      {"path": "identity.contact.email", "classification": "internal", "accessRoles": ["owner", "administrator", "hr_administrator"], "encryption": "at_rest_required", "retentionDays": 2555},
+      {"path": "employees.compensation", "classification": "restricted", "accessRoles": ["owner", "administrator", "payroll_administrator"], "encryption": "field_level_required", "retentionDays": 2555},
+      {"path": "employees.bankAccount", "classification": "restricted", "accessRoles": ["owner"], "encryption": "field_level_required", "retentionDays": 2555},
+      {"path": "messages.body", "classification": "confidential", "accessRoles": ["owner", "administrator", "hr_administrator"], "encryption": "at_rest_required", "retentionDays": 365},
+      {"path": "integrations.credentials", "classification": "restricted", "accessRoles": ["owner"], "encryption": "field_level_required", "retentionDays": 365}
+    ],
+    "audit": {
+      "requiredEvents": [
+        "tenant.configuration.provisioned",
+        "tenant.configuration.version.created",
+        "tenant.configuration.activated",
+        "tenant.configuration.change.rejected",
+        "tenant.status.changed",
+        "integration.health.checked",
+        "employee.onboarding.started",
+        "time.clock_event.recorded",
+        "time.correction.approved",
+        "leave.request.decided",
+        "payroll.release.approved",
+        "policy.acknowledged",
+        "agent.action.recorded",
+        "messaging.consent.changed"
+      ],
+      "retentionDays": 2555,
+      "immutable": true
+    },
+    "configurationManagement": {
+      "versioning": "immutable_snapshots",
+      "changeRequiresApproval": true,
+      "approvalRoles": ["owner", "administrator"],
+      "activationRequires": [
+        "Validated configuration against the universal company configuration schema",
+        "Confirmed business identity and at least one authorized employment jurisdiction",
+        "Provisioned and verified Microsoft tenant credentials",
+        "Provisioned and verified SMS, MMS, and voice telephone number",
+        "Company confirmation of enforceable HR policies"
+      ]
+    },
+    "retention": {
+      "employeeRecordsDays": 2555,
+      "payrollRecordsDays": 2555,
+      "messagesDays": 365,
+      "auditDays": 2555,
+      "policyVersionDays": 2555
+    }
+  }
+}
